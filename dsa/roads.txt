@@ -1,0 +1,2 @@
+City_1              City_2              Budget
+Kigali              Muhanga             28.60
