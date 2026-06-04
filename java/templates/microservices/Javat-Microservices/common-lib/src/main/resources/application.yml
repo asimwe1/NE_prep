@@ -1,0 +1,13 @@
+# Common Library Configuration Properties
+# These are default values - services can override them
+
+jwt:
+  secret: mZOvVbXmBCYgS0KwcuhlfdqIoo+rVQXW9lqpJuOCC2E=
+  access-token:
+    expiration: 900000 # 15 minutes in milliseconds
+  refresh-token:
+    expiration: 604800000 # 7 days in milliseconds
+
+logging:
+  level:
+    com.microservices.common: INFO

@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.microservices.common.exception.GlobalExceptionHandler,\
+  com.microservices.common.security.JwtUtil

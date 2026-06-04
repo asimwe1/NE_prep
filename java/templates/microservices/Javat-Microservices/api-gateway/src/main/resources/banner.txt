@@ -1,0 +1,8 @@
+
+========================================
+   API GATEWAY
+   Single Entry Point for All Services
+========================================
+Gateway: http://localhost:8080
+Actuator: http://localhost:8080/actuator
+========================================

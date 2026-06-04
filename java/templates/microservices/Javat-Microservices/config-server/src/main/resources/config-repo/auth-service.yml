@@ -1,0 +1,22 @@
+# Configuration for auth-service (all profiles)
+
+spring:
+  application:
+    name: auth-service
+
+server:
+  port: 8082
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:YnUXTKgRho+1/jNZD1tRv3tG14vJf9156gzG37qxPbM=}
+  access-token:
+    expiration: 900000      # 15 minutes
+  refresh-token:
+    expiration: 604800000   # 7 days
+
+# Service-specific configuration
+app:
+  name: Authentication Service
+  description: Handles user authentication and authorization
+  version: 1.0.0

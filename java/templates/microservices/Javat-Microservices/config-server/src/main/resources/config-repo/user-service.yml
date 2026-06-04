@@ -1,0 +1,14 @@
+# Configuration for user-service (all profiles)
+
+spring:
+  application:
+    name: user-service
+
+server:
+  port: 8081
+
+# Service-specific configuration
+app:
+  name: User Service
+  description: Manages user data and operations
+  version: 1.0.0

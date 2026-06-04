@@ -1,0 +1,15 @@
+# Development Profile Configuration
+
+server:
+  port: 8761
+
+eureka:
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
+
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
+    com.microservices.discovery: DEBUG

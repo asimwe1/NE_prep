@@ -1,0 +1,19 @@
+# Local configuration (most config comes from Config Server)
+
+server:
+  port: 8082
+
+# H2 Console (for development only)
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Logging
+logging:
+  level:
+    com.microservices.auth: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

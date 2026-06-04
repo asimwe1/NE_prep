@@ -1,0 +1,27 @@
+# Configuration for notification-service (all profiles)
+
+spring:
+  application:
+    name: notification-service
+
+server:
+  port: 8083
+
+# Service-specific configuration
+app:
+  name: Notification Service
+  description: Handles email and SMS notifications
+  version: 1.0.0
+
+# Email configuration template
+mail:
+  host: ${MAIL_HOST:smtp.gmail.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true

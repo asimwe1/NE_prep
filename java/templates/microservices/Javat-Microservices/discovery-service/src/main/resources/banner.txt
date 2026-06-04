@@ -1,0 +1,8 @@
+
+========================================
+   EUREKA DISCOVERY SERVICE
+   Service Registry & Discovery
+========================================
+Dashboard: http://localhost:8761
+Spring Boot: ${spring-boot.version}
+========================================

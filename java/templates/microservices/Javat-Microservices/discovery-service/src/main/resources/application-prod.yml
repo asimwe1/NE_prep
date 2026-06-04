@@ -1,0 +1,26 @@
+# Production Profile Configuration
+
+server:
+  port: 8761
+
+eureka:
+  server:
+    # Enable self-preservation in production for high availability
+    enable-self-preservation: true
+    eviction-interval-timer-in-ms: 60000
+    renewal-percent-threshold: 0.85
+
+# Security configuration (uncomment when ready to secure Eureka)
+# spring:
+#   security:
+#     user:
+#       name: admin
+#       password: ${EUREKA_PASSWORD:changeme}
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+    com.microservices.discovery: INFO
+  file:
+    name: logs/discovery-service.log

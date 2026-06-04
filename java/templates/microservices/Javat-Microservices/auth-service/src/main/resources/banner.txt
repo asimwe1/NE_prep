@@ -1,0 +1,8 @@
+
+========================================
+   AUTHENTICATION SERVICE
+   Login, Register, JWT Management
+========================================
+Service: http://localhost:8082
+API: http://localhost:8082/api/auth
+========================================

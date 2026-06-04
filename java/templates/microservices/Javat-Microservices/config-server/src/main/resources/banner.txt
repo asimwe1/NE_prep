@@ -1,0 +1,8 @@
+
+========================================
+   SPRING CLOUD CONFIG SERVER
+   Centralized Configuration Management
+========================================
+Server: http://localhost:8888
+Config Repo: classpath:/config-repo
+========================================
