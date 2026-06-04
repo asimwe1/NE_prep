@@ -1,5 +1,7 @@
 HELP.md
 target/
+.data/
+boot-run-check*.log
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
