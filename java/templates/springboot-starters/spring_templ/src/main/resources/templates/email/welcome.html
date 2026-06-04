@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Welcome!</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f7; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header { background: #059669; color: white; padding: 32px; text-align: center; }
+    .header h1 { margin: 0 0 8px; font-size: 28px; }
+    .header p { margin: 0; opacity: .85; }
+    .body { padding: 32px; color: #374151; }
+    .body p { line-height: 1.6; margin: 0 0 16px; }
+    .button-wrap { text-align: center; margin: 32px 0; }
+    .button { background: #059669; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; display: inline-block; }
+    .footer { background: #f9fafb; padding: 20px 32px; text-align: center; color: #6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Welcome aboard! 🎉</h1>
+      <p th:text="${appName}">Your App</p>
+    </div>
+    <div class="body">
+      <p>Hi <strong th:text="${name}">User</strong>,</p>
+      <p>Your email has been verified and your account is ready to go. We're excited to have you!</p>
+      <div class="button-wrap">
+        <a th:href="${loginUrl}" class="button">Go to Dashboard</a>
+      </div>
+      <p>If you have any questions or need help getting started, feel free to reach out to our support team.</p>
+      <p>Happy exploring! 🚀</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2024 <span th:text="${appName}">Your App</span>. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

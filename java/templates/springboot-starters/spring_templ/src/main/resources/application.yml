@@ -1,0 +1,79 @@
+spring:
+  profiles:
+    active: dev
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Mail
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:grouphantom@gmail.com}
+    password: ${MAIL_PASSWORD:agmh ihko nrjs qztt}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  # Thymeleaf
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+# JWT
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration: ${JWT_EXPIRATION:86400000}       # 24 hours in ms
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in ms
+
+  # Email settings
+  email:
+    from: ${MAIL_FROM:noreply@yourapp.com}
+    from-name: ${MAIL_FROM_NAME:java ne project}
+    base-url: ${APP_BASE_URL:http://localhost:8080}
+
+  # Token expiry (minutes)
+  verification-token-expiry: 1440   # 24 hours
+  password-reset-token-expiry: 60   # 1 hour
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+logging:
+  level:
+    com.template: DEBUG
+    org.springframework.security: INFO
