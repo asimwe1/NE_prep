@@ -51,6 +51,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(WHITE_LIST).permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/customers/**").authenticated()
+                .requestMatchers("/api/v1/meters/**").authenticated()
+                .requestMatchers("/api/v1/readings/**").authenticated()
+                .requestMatchers("/api/v1/tariffs/**").authenticated()
+                .requestMatchers("/api/v1/bills/**").authenticated()
+                .requestMatchers("/api/v1/payments/**").authenticated()
+                .requestMatchers("/api/v1/notifications/**").authenticated()
                 .anyRequest().authenticated()
             )
 
