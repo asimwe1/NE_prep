@@ -24,7 +24,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(
             summary = "Register a new user",
-            description = "Creates a disabled user account and generates an email verification link. In local log mode, copy the verification actionUrl from the application logs."
+            description = "Creates a disabled user account and sends an email verification link through SMTP. If EMAIL_DELIVERY=log, copy the verification actionUrl from the application logs."
     )
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
@@ -37,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-verification")
-    @Operation(summary = "Resend email verification link", description = "Generates a new verification link for an unverified account. In local log mode, the link is printed to the application logs.")
+    @Operation(summary = "Resend email verification link", description = "Generates and sends a new verification link for an unverified account. If EMAIL_DELIVERY=log, the link is printed to the application logs.")
     public ResponseEntity<MessageResponse> resendVerification(@RequestParam String email) {
         return ResponseEntity.ok(authService.resendVerification(email));
     }
@@ -63,7 +63,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(
             summary = "Request password reset",
-            description = "Generates a reset token for an existing account. In local log mode, the response includes actionUrl and the same URL is printed in the logs. Unknown emails return 404."
+            description = "Generates a reset token for an existing account and sends the reset link through SMTP. If EMAIL_DELIVERY=log, the response includes actionUrl and the same URL is printed in the logs. Unknown emails return 404."
     )
     public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         return ResponseEntity.ok(authService.forgotPassword(request));

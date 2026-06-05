@@ -23,9 +23,10 @@ import org.springframework.context.annotation.Configuration;
                 DB_USERNAME=postgres
                 DB_PASSWORD=postgres
 
-                Secrets are loaded from a local .env file that must not be committed. In local mode,
-                verification and password-reset messages are written to the application logs by default.
-                Copy the actionUrl from the log to verify an account or reset a password.
+                Secrets are loaded from a local .env file that must not be committed. Email delivery uses
+                SMTP when EMAIL_DELIVERY=smtp. For Gmail, configure smtp.gmail.com:587, STARTTLS,
+                MAIL_USERNAME, MAIL_PASSWORD, and MAIL_FROM in .env. If EMAIL_DELIVERY=log is used as a
+                fallback, verification and password-reset actionUrl values are printed to the logs.
 
                 List endpoints use simple pagination only: page and size. Sorting is intentionally not exposed
                 in Swagger to avoid invalid sort-field failures while keeping list-all requests simple.

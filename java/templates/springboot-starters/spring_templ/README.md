@@ -48,7 +48,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 ```
 
-In local dev, verification links are written to the application logs by default. Password-reset responses also include an `actionUrl` field when `EMAIL_DELIVERY=log`.
+In local dev, email is sent through SMTP when `EMAIL_DELIVERY=smtp`. For Gmail, use a Gmail app password, not your normal Gmail password.
 
 Default admin:
 
@@ -93,14 +93,16 @@ DB_PASSWORD=postgres
 JWT_SECRET=replace_with_a_generated_secret
 JWT_EXPIRATION=86400000
 JWT_REFRESH_EXPIRATION=604800000
-MAIL_HOST=localhost
-MAIL_PORT=1025
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_SMTP_AUTH=false
-MAIL_STARTTLS=false
-MAIL_STARTTLS_REQUIRED=false
-MAIL_FROM=noreply@yourapp.com
+EMAIL_DELIVERY=smtp
+MAIL_HEALTH_ENABLED=true
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_gmail_address@gmail.com
+MAIL_PASSWORD=your_gmail_app_password
+MAIL_SMTP_AUTH=true
+MAIL_STARTTLS=true
+MAIL_STARTTLS_REQUIRED=true
+MAIL_FROM=your_gmail_address@gmail.com
 MAIL_FROM_NAME=YourApp
 APP_BASE_URL=http://localhost:8080
 ADMIN_DEFAULT_PASSWORD=replace_with_a_local_admin_password
@@ -108,11 +110,22 @@ ADMIN_DEFAULT_PASSWORD=replace_with_a_local_admin_password
 
 `.env` is ignored by `.gitignore` and should remain local.
 
-For Gmail SMTP, create a Gmail app password, put it in `MAIL_PASSWORD` inside `.env`, and rotate it immediately if it is ever committed or shared.
+For Gmail SMTP, use these `.env` values:
 
-To send through SMTP instead of logging email links, set `EMAIL_DELIVERY=smtp`. For local Mailpit, keep `MAIL_HOST=localhost`, `MAIL_PORT=1025`, and open Mailpit at `http://localhost:8025`. For Gmail, also set `MAIL_SMTP_AUTH=true`, `MAIL_STARTTLS=true`, and `MAIL_STARTTLS_REQUIRED=true`.
+```dotenv
+EMAIL_DELIVERY=smtp
+MAIL_HEALTH_ENABLED=true
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_gmail_address@gmail.com
+MAIL_PASSWORD=your_gmail_app_password
+MAIL_SMTP_AUTH=true
+MAIL_STARTTLS=true
+MAIL_STARTTLS_REQUIRED=true
+MAIL_FROM=your_gmail_address@gmail.com
+```
 
-When `EMAIL_DELIVERY=log`, keep `MAIL_HEALTH_ENABLED=false` so Actuator does not check a local SMTP server that is not running.
+`MAIL_FROM` should match `MAIL_USERNAME` for Gmail. If you temporarily do not want real emails, set `EMAIL_DELIVERY=log` and `MAIL_HEALTH_ENABLED=false`; password-reset responses will include `actionUrl` directly.
 
 ## API docs
 
