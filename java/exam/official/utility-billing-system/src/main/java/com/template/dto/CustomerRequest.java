@@ -3,11 +3,17 @@ package com.template.dto;
 import com.template.validation.ValidName;
 import com.template.validation.ValidNationalId;
 import com.template.validation.ValidRwandanPhone;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class CustomerRequest {
+
+    @Schema(description = "Optional existing ROLE_CUSTOMER user account ID to link to this customer profile")
+    private UUID userId;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")

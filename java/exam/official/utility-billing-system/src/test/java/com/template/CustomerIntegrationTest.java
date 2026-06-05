@@ -3,8 +3,10 @@ package com.template;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.dto.CustomerRequest;
 import com.template.dto.LoginRequest;
+import com.template.dto.RegisterRequest;
 import com.template.entity.CustomerStatus;
 import com.template.repository.CustomerRepository;
+import com.template.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,7 @@ class CustomerIntegrationTest {
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @Autowired CustomerRepository customerRepository;
+    @Autowired UserRepository userRepository;
 
     @Value("${app.admin.default-password}")
     String adminPassword;
@@ -186,6 +189,41 @@ class CustomerIntegrationTest {
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    @Test
+    void createCustomerWithExistingUserId_thenGetByUserId_returnsCustomer() throws Exception {
+        String token = loginAsAdmin();
+        String email = "linked_customer_" + System.nanoTime() + "@example.com";
+        RegisterRequest register = new RegisterRequest();
+        register.setEmail(email);
+        register.setPassword("SecurePass1!");
+        register.setFullName("Linked Customer");
+        register.setPhoneNumber("+250788000002");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isCreated());
+
+        String userId = userRepository.findByEmail(email).orElseThrow().getId().toString();
+        CustomerRequest customer = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        customer.setUserId(java.util.UUID.fromString(userId));
+
+        mockMvc.perform(post("/api/v1/customers")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(customer)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.fullName").value("Linked Customer"))
+                .andExpect(jsonPath("$.email").value(email));
+
+        mockMvc.perform(get("/api/v1/customers/" + userId)
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.nationalId").value(customer.getNationalId()));
+    }
 
     private CustomerRequest validCustomerRequest(String nationalId) {
         CustomerRequest req = new CustomerRequest();

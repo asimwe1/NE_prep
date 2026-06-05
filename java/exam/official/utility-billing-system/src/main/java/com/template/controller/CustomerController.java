@@ -30,7 +30,7 @@ public class CustomerController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new customer")
+    @Operation(summary = "Create a new customer", description = "Optionally pass userId to link an existing ROLE_CUSTOMER user account to the customer profile.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Customer created"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -73,7 +73,7 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get customer by ID")
+    @Operation(summary = "Get customer by ID", description = "Accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

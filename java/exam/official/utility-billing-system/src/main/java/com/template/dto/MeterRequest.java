@@ -3,6 +3,7 @@ package com.template.dto;
 import com.template.entity.BillingMode;
 import com.template.entity.CompanyType;
 import com.template.entity.UtilityType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -27,6 +28,7 @@ public class MeterRequest {
     private CompanyType companyType;
 
     @NotNull(message = "Customer ID is required")
+    @Schema(description = "Customer profile ID, or the linked ROLE_CUSTOMER user ID")
     private UUID customerId;
 
     @NotNull(message = "Installation date is required")

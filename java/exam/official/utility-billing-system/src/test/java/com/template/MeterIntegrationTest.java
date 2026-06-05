@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.dto.CustomerRequest;
 import com.template.dto.LoginRequest;
 import com.template.dto.MeterRequest;
+import com.template.dto.RegisterRequest;
 import com.template.entity.BillingMode;
 import com.template.entity.CompanyType;
 import com.template.entity.UtilityType;
+import com.template.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,7 @@ class MeterIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
+    @Autowired UserRepository userRepository;
 
     @Value("${app.admin.default-password}")
     String adminPassword;
@@ -136,6 +139,24 @@ class MeterIntegrationTest {
                 .andExpect(jsonPath("$").isArray());
     }
 
+    @Test
+    void assignMeterWithLinkedUserId_thenListByUserId_returnsMeters() throws Exception {
+        UUID userId = createLinkedCustomerUser();
+        MeterRequest req = validMeterRequest("MTR-USERLINK-001", userId);
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.meterNumber").value("MTR-USERLINK-001"));
+
+        mockMvc.perform(get("/api/v1/meters/customer/" + userId)
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].meterNumber").value("MTR-USERLINK-001"));
+    }
+
     // ─── Activate / Deactivate ────────────────────────────────────────────────
 
     @Test
@@ -186,6 +207,39 @@ class MeterIntegrationTest {
                 .andReturn().getResponse().getContentAsString();
 
         return UUID.fromString(objectMapper.readTree(body).get("id").asText());
+    }
+
+    private UUID createLinkedCustomerUser() throws Exception {
+        String email = "meter_linked_customer_" + System.nanoTime() + "@example.com";
+        RegisterRequest register = new RegisterRequest();
+        register.setEmail(email);
+        register.setPassword("SecurePass1!");
+        register.setFullName("Meter Linked Customer");
+        register.setPhoneNumber("+250788000003");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isCreated());
+
+        UUID userId = userRepository.findByEmail(email).orElseThrow().getId();
+        CustomerRequest customer = new CustomerRequest();
+        customer.setUserId(userId);
+        customer.setFullName("Ignored Because Linked User Wins");
+        customer.setNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        customer.setEmail("ignored" + System.nanoTime() + "@example.com");
+        customer.setPhoneNumber("+250788000004");
+        customer.setAddress("KN 15 Ave, Kigali");
+        customer.setDistrict("Gasabo");
+
+        mockMvc.perform(post("/api/v1/customers")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(customer)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(userId.toString()));
+
+        return userId;
     }
 
     private String loginAsAdmin() throws Exception {

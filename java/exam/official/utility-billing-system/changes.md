@@ -465,3 +465,15 @@ Committed as `asimwe001`.
 - All controller endpoints documented with `@ApiResponse` annotations specifying HTTP status codes and descriptions.
 - Javadoc added to all public service methods across all seven service classes.
 - Note: both tasks were completed by external commit `7f3bd5e Document utility billing codebase` pushed to HEAD during this session.
+
+---
+
+### Customer User Linking Fix
+
+- Added optional `userId` support on customer creation/update so an existing `ROLE_CUSTOMER` user can be linked to a customer profile.
+- Customer responses now include `userId` when a customer is linked to a login account.
+- Customer lookup now accepts either the customer profile ID or the linked user ID.
+- Meter assignment benefits from the same lookup because `MeterService` resolves customers through `CustomerService.findOrThrow`.
+- Added an integration test covering create-by-existing-user-id and get-customer-by-user-id.
+- Documented meter `customerId` as accepting either a customer profile ID or linked customer user ID.
+- Added an integration test covering meter assignment and meter listing by linked user ID.
