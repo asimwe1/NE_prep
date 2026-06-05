@@ -1,0 +1,88 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  profiles:
+    active: dev
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Mail
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+            required: ${MAIL_STARTTLS_REQUIRED:false}
+
+  # Thymeleaf
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+# JWT
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-development-jwt-secret}
+    expiration: ${JWT_EXPIRATION:86400000}       # 24 hours in ms
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in ms
+
+  # Email settings
+  email:
+    delivery: ${EMAIL_DELIVERY:log}
+    from: ${MAIL_FROM:noreply@yourapp.com}
+    from-name: ${MAIL_FROM_NAME:java ne project}
+    base-url: ${APP_BASE_URL:http://localhost:8080}
+
+  # Token expiry (minutes)
+  verification-token-expiry: 1440   # 24 hours
+  password-reset-token-expiry: 60   # 1 hour
+  admin:
+    default-password: ${ADMIN_DEFAULT_PASSWORD:change-me-before-running}
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+
+# Actuator
+management:
+  health:
+    mail:
+      enabled: ${MAIL_HEALTH_ENABLED:false}
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+logging:
+  level:
+    com.template: DEBUG
+    org.springframework.security: INFO

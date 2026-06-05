@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: utility-billing-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: utility_billing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - utility_billing_postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: utility-billing-system-app
+    container_name: utility-billing-system-app
+    depends_on:
+      - db
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/utility_billing_db
+    restart: unless-stopped
+
+volumes:
+  utility_billing_postgres_data:
