@@ -1,6 +1,9 @@
 package com.template.controller;
 
 import com.template.dto.*;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import com.template.service.TariffService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +33,58 @@ public class TariffController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new tariff")
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = {
+                            @ExampleObject(
+                                    name = "Tier Based Water Tariff",
+                                    value = """
+                                            {
+                                              "tariffCode": "WATER_POSTPAID_STD_202606_V1",
+                                              "utilityType": "WATER",
+                                              "billingMode": "POSTPAID",
+                                              "tariffType": "TIER_BASED",
+                                              "version": 1,
+                                              "effectiveStartCycle": "2026-06",
+                                              "effectiveEndCycle": "2026-12",
+                                              "fixedServiceCharge": 500,
+                                              "vatRate": 18,
+                                              "tiers": [
+                                                {
+                                                  "tierMin": 0,
+                                                  "tierMax": 15,
+                                                  "unitPrice": 120
+                                                },
+                                                {
+                                                  "tierMin": 15,
+                                                  "tierMax": 50,
+                                                  "unitPrice": 180
+                                                }
+                                              ]
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Flat Electricity Tariff",
+                                    value = """
+                                            {
+                                              "tariffCode": "ELEC_PREPAID_FLAT_202606_V1",
+                                              "utilityType": "ELECTRICITY",
+                                              "billingMode": "PREPAID",
+                                              "tariffType": "FLAT",
+                                              "version": 1,
+                                              "effectiveStartCycle": "2026-06",
+                                              "fixedServiceCharge": 0,
+                                              "vatRate": 18,
+                                              "tiers": []
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Tariff created"),
         @ApiResponse(responseCode = "400", description = "Validation error or business rule violation"),
@@ -79,6 +134,23 @@ public class TariffController {
     @PostMapping("/taxes")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a tax configuration")
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                            name = "VAT Configuration",
+                            value = """
+                                    {
+                                      "name": "VAT 18 Water",
+                                      "rate": 18,
+                                      "utilityType": "WATER",
+                                      "effectiveFrom": "2026-06"
+                                    }
+                                    """
+                    )
+            )
+    )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Tax configuration created"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -108,6 +180,23 @@ public class TariffController {
     @PostMapping("/penalties")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a penalty configuration")
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                            name = "Late Payment Penalty",
+                            value = """
+                                    {
+                                      "name": "Late Payment Penalty",
+                                      "rate": 5,
+                                      "gracePeriodDays": 15,
+                                      "utilityType": "WATER"
+                                    }
+                                    """
+                    )
+            )
+    )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Penalty configuration created"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
