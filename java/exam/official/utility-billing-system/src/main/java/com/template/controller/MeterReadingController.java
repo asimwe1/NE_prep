@@ -27,7 +27,7 @@ public class MeterReadingController {
     private final MeterReadingService meterReadingService;
 
     @PostMapping
-    @PreAuthorize("hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
     @Operation(summary = "Capture a new meter reading")
     public ResponseEntity<MeterReadingResponse> capture(@Valid @RequestBody MeterReadingRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(meterReadingService.captureReading(request));

@@ -54,6 +54,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
+
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Invalidates the current user's refresh token.", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<MessageResponse> logout(@AuthenticationPrincipal User user) {

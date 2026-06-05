@@ -27,14 +27,14 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    @PreAuthorize("hasRole('FINANCE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "Record a payment against a bill")
     public ResponseEntity<PaymentResponse> record(@Valid @RequestBody PaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.recordPayment(request));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('FINANCE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "List all payments (paginated)")
     public ResponseEntity<Page<PaymentResponse>> list(
             @RequestParam(defaultValue = "0") int page,
