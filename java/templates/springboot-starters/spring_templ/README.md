@@ -8,7 +8,8 @@ A clean Spring Boot starter for JWT auth, email verification, refresh tokens, ro
 - Spring Security 6
 - JWT + refresh token rotation
 - Email verification and password reset
-- H2 for local dev, PostgreSQL for prod
+- PostgreSQL for local dev and prod
+- H2 for tests
 - Swagger/OpenAPI via SpringDoc
 - Docker Compose support for app + PostgreSQL
 
@@ -37,7 +38,15 @@ The app starts on `http://localhost:8080`.
 Open:
 
 - `http://localhost:8080/swagger-ui.html`
-- `http://localhost:8080/h2-console`
+Before running, make sure PostgreSQL is running locally and has a database named `templatedb`.
+
+Default local database settings:
+
+```dotenv
+DB_URL=jdbc:postgresql://localhost:5432/templatedb
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+```
 
 In local dev, verification and password-reset links are written to the application logs by default. Use the `actionUrl` from the log to verify the account or reset the password.
 
@@ -79,8 +88,8 @@ Example `.env` values:
 
 ```dotenv
 DB_URL=jdbc:postgresql://localhost:5432/templatedb
-DB_USERNAME=your_database_user
-DB_PASSWORD=your_database_password
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
 JWT_SECRET=replace_with_a_generated_secret
 JWT_EXPIRATION=86400000
 JWT_REFRESH_EXPIRATION=604800000
