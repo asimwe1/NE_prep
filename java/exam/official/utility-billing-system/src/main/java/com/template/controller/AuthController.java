@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,6 +59,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Invalidates the current user's refresh token.", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<MessageResponse> logout(@AuthenticationPrincipal User user) {
+        requireAuthenticated(user);
         return ResponseEntity.ok(authService.logout(user));
     }
 
@@ -81,12 +83,20 @@ public class AuthController {
     public ResponseEntity<MessageResponse> changePassword(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ChangePasswordRequest request) {
+        requireAuthenticated(user);
         return ResponseEntity.ok(authService.changePassword(user, request));
     }
 
     @GetMapping("/me")
     @Operation(summary = "Get current user profile", description = "Returns the profile represented by the Bearer token.", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal User user) {
+        requireAuthenticated(user);
         return ResponseEntity.ok(authService.toUserResponse(user));
+    }
+
+    private void requireAuthenticated(User user) {
+        if (user == null) {
+            throw new AccessDeniedException("Authentication is required");
+        }
     }
 }

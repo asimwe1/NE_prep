@@ -406,3 +406,14 @@ Maintainer: asimwe001 / asimwe1
   - `@ValidName`
   - `@ValidNationalId`
   - `@ValidRwandanPhone`
+
+---
+
+### Security Error Handling Cleanup
+
+- Restricted public auth routes to only signup, login, email verification, token refresh, forgot-password, and reset-password.
+- Protected `/api/v1/auth/me`, `/api/v1/auth/logout`, and `/api/v1/auth/change-password` so they require a Bearer token.
+- Added a JSON `401 Unauthorized` response that clearly tells clients to login and send a valid Bearer token.
+- Added a JSON `403 Forbidden` response for authenticated users whose role is not allowed to use an endpoint.
+- Added defensive auth-principal checks in authenticated auth endpoints to avoid null-user service errors.
+- Added integration tests for unauthenticated profile access and customer-role access to the admin-only customer list.

@@ -100,7 +100,15 @@ class AuthIntegrationTest {
     @Test
     void protectedEndpointWithoutToken_returns401() throws Exception {
         mockMvc.perform(get("/api/v1/customers"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication required. Please login and include a valid Bearer token."));
+    }
+
+    @Test
+    void currentUserWithoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication required. Please login and include a valid Bearer token."));
     }
 
     @Test
@@ -111,6 +119,33 @@ class AuthIntegrationTest {
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    void customerAccessingAdminCustomerList_returns403() throws Exception {
+        String email = "limited_customer_" + System.currentTimeMillis() + "@example.com";
+        String password = "SecurePass1!";
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail(email);
+        req.setPassword(password);
+        req.setFullName("Limited Customer");
+        req.setPhoneNumber("+250780000004");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated());
+
+        User user = userRepository.findByEmail(email).orElseThrow();
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+
+        String token = login(email, password);
+
+        mockMvc.perform(get("/api/v1/customers")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Access denied: your role is not allowed to use this endpoint."));
     }
 
     @Test
@@ -152,9 +187,13 @@ class AuthIntegrationTest {
     }
 
     private String loginAsAdmin() throws Exception {
+        return login("admin@example.com", adminPassword);
+    }
+
+    private String login(String email, String password) throws Exception {
         LoginRequest req = new LoginRequest();
-        req.setEmail("admin@example.com");
-        req.setPassword(adminPassword);
+        req.setEmail(email);
+        req.setPassword(password);
 
         String response = mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)

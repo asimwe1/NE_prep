@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,8 +57,19 @@ public class ApplicationConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("""
-                    {"error": "Unauthorized", "message": "%s"}
-                    """.formatted(authException.getMessage()));
+                    {"status": 401, "error": "Unauthorized", "message": "Authentication required. Please login and include a valid Bearer token."}
+                    """);
+        };
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("""
+                    {"status": 403, "error": "Forbidden", "message": "Access denied: your role is not allowed to use this endpoint."}
+                    """);
         };
     }
 }

@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        return build(HttpStatus.FORBIDDEN, "Access denied: insufficient privileges");
+        return build(HttpStatus.FORBIDDEN, "Access denied: your role is not allowed to use this endpoint.");
     }
 
     @ExceptionHandler(BadCredentialsException.class)
