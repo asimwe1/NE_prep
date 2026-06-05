@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -80,6 +81,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException ex) {
         String msg = String.format("The field '%s' does not exist on this entity resource.", ex.getPropertyName());
         return build(HttpStatus.BAD_REQUEST, "Invalid sort property target", msg);
+    }
+
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleClientAbort(AsyncRequestNotUsableException ex) {
+        log.debug("Client closed the connection before the response was fully written: {}", ex.getMessage());
     }
 
     // Catch-all 
