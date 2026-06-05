@@ -32,7 +32,7 @@ public class TariffController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new tariff")
+    @Operation(summary = "[ADMIN] Create a new tariff")
     @RequestBody(
             required = true,
             content = @Content(
@@ -42,14 +42,14 @@ public class TariffController {
                                     name = "Tier Based Water Tariff",
                                     value = """
                                             {
-                                              "tariffCode": "WATER_POSTPAID_STD_202606_V1",
+                                              "tariffCode": "WATER_PREPAID_TIER_202606_V1",
                                               "utilityType": "WATER",
-                                              "billingMode": "POSTPAID",
+                                              "billingMode": "PREPAID",
                                               "tariffType": "TIER_BASED",
                                               "version": 1,
                                               "effectiveStartCycle": "2026-06",
                                               "effectiveEndCycle": "2026-12",
-                                              "fixedServiceCharge": 500,
+                                              "fixedServiceCharge": 0,
                                               "vatRate": 18,
                                               "tiers": [
                                                 {
@@ -96,7 +96,7 @@ public class TariffController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "List all tariffs (paginated)")
+    @Operation(summary = "[ADMIN] List all tariffs (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of tariffs"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -109,7 +109,7 @@ public class TariffController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get tariff by ID")
+    @Operation(summary = "[ADMIN] Get tariff by ID")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Tariff found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -121,7 +121,7 @@ public class TariffController {
 
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a tariff")
+    @Operation(summary = "[ADMIN] Deactivate a tariff")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Tariff deactivated"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -133,7 +133,7 @@ public class TariffController {
 
     @PostMapping("/taxes")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a tax configuration")
+    @Operation(summary = "[ADMIN] Create a tax configuration")
     @RequestBody(
             required = true,
             content = @Content(
@@ -163,7 +163,7 @@ public class TariffController {
 
     @GetMapping("/taxes")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "List all tax configurations (paginated)")
+    @Operation(summary = "[ADMIN] List all tax configurations (paginated)")
     public ResponseEntity<Page<TaxConfigurationResponse>> listTaxConfigs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -172,14 +172,14 @@ public class TariffController {
 
     @PatchMapping("/taxes/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a tax configuration")
+    @Operation(summary = "[ADMIN] Deactivate a tax configuration")
     public ResponseEntity<TaxConfigurationResponse> deactivateTaxConfig(@PathVariable UUID id) {
         return ResponseEntity.ok(tariffService.deactivateTaxConfig(id));
     }
 
     @PostMapping("/penalties")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a penalty configuration")
+    @Operation(summary = "[ADMIN] Create a penalty configuration")
     @RequestBody(
             required = true,
             content = @Content(
@@ -209,7 +209,7 @@ public class TariffController {
 
     @GetMapping("/penalties")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "List all penalty configurations (paginated)")
+    @Operation(summary = "[ADMIN] List all penalty configurations (paginated)")
     public ResponseEntity<Page<PenaltyConfigurationResponse>> listPenaltyConfigs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -218,7 +218,7 @@ public class TariffController {
 
     @PatchMapping("/penalties/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a penalty configuration")
+    @Operation(summary = "[ADMIN] Deactivate a penalty configuration")
     public ResponseEntity<PenaltyConfigurationResponse> deactivatePenaltyConfig(@PathVariable UUID id) {
         return ResponseEntity.ok(tariffService.deactivatePenaltyConfig(id));
     }

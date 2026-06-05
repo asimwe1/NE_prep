@@ -30,7 +30,7 @@ public class MeterReadingController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
-    @Operation(summary = "Capture a new meter reading")
+    @Operation(summary = "[ADMIN|OPERATOR] Capture a new meter reading")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Reading captured"),
         @ApiResponse(responseCode = "400", description = "Validation error or invalid reading value"),
@@ -45,7 +45,7 @@ public class MeterReadingController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
-    @Operation(summary = "List all meter readings (paginated)")
+    @Operation(summary = "[ADMIN|OPERATOR] List all meter readings (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of readings"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -58,7 +58,7 @@ public class MeterReadingController {
 
     @GetMapping("/meter/{meterId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
-    @Operation(summary = "List readings for a specific meter (paginated)")
+    @Operation(summary = "[ADMIN|OPERATOR] List readings for a specific meter (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of readings for the meter"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -74,7 +74,7 @@ public class MeterReadingController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
-    @Operation(summary = "Get a single meter reading by ID")
+    @Operation(summary = "[ADMIN|OPERATOR] Get a single meter reading by ID")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Meter reading found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

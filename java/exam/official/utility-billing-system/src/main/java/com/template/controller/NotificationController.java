@@ -27,7 +27,7 @@ public class NotificationController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "List all notifications (paginated)")
+    @Operation(summary = "[ADMIN] List all notifications (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of notifications"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -41,7 +41,7 @@ public class NotificationController {
 
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "List notifications for a specific customer (paginated)")
+    @Operation(summary = "[ADMIN|CUSTOMER] List notifications for a specific customer (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of notifications for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -58,7 +58,7 @@ public class NotificationController {
 
     @GetMapping("/customer/national-id/{nationalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "List notifications for a customer by National ID (paginated)", description = "Recommended customer-facing notification lookup.")
+    @Operation(summary = "[ADMIN|CUSTOMER] List notifications for a customer by National ID (paginated)", description = "Recommended customer-facing notification lookup.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of notifications for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

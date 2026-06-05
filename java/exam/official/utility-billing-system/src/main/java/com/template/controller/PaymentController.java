@@ -30,7 +30,7 @@ public class PaymentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
-    @Operation(summary = "Record a payment against a bill")
+    @Operation(summary = "[ADMIN|FINANCE] Record a payment against a bill")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Payment recorded"),
         @ApiResponse(responseCode = "400", description = "Validation error, overpayment, or bill already paid"),
@@ -43,7 +43,7 @@ public class PaymentController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
-    @Operation(summary = "List all payments (paginated)")
+    @Operation(summary = "[ADMIN|FINANCE] List all payments (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of payments"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -56,7 +56,7 @@ public class PaymentController {
 
     @GetMapping("/bill/{billId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
-    @Operation(summary = "List payments for a specific bill (paginated)")
+    @Operation(summary = "[ADMIN|FINANCE] List payments for a specific bill (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of payments for the bill"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

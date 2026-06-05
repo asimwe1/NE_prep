@@ -32,7 +32,7 @@ public class CustomerController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new customer", description = "Optionally pass userId in the body to link an existing ROLE_CUSTOMER login account to the customer profile.")
+    @Operation(summary = "[ADMIN] Create a new customer", description = "Optionally pass userId in the body to link an existing ROLE_CUSTOMER login account to the customer profile.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Customer created"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -46,7 +46,7 @@ public class CustomerController {
 
     @PutMapping("/{customerId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update customer details", description = "Identify the customer with customerId in the path. Do not send userId in the body; use create to link a login account.")
+    @Operation(summary = "[ADMIN] Update customer details", description = "Identify the customer with customerId in the path. Do not send userId in the body; use create to link a login account.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer updated"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -63,7 +63,7 @@ public class CustomerController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "List all customers (paginated)")
+    @Operation(summary = "[ADMIN] List all customers (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of customers"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -76,7 +76,7 @@ public class CustomerController {
 
     @GetMapping("/national-id/{nationalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get customer by National ID", description = "Recommended customer lookup for Swagger/Postman because National ID is the customer-facing identifier.")
+    @Operation(summary = "[ADMIN|CUSTOMER] Get customer by National ID", description = "Recommended customer lookup for Swagger/Postman because National ID is the customer-facing identifier.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -88,7 +88,7 @@ public class CustomerController {
 
     @GetMapping("/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get customer by ID", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID. Prefer /national-id/{nationalId} for user-facing operations.")
+    @Operation(summary = "[ADMIN|CUSTOMER] Get customer by ID", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID. Prefer /national-id/{nationalId} for user-facing operations.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -102,7 +102,7 @@ public class CustomerController {
 
     @PatchMapping("/{customerId}/activate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Activate a customer")
+    @Operation(summary = "[ADMIN] Activate a customer")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer activated"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -116,7 +116,7 @@ public class CustomerController {
 
     @PatchMapping("/{customerId}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a customer")
+    @Operation(summary = "[ADMIN] Deactivate a customer")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer deactivated"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

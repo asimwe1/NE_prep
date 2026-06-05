@@ -31,7 +31,7 @@ public class MeterController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Assign a new meter to a customer", description = "Use customerNationalId as the preferred customer reference. customerId is kept only as an internal/backward-compatible fallback. If the National ID belongs to a registered ROLE_CUSTOMER user with no profile yet, also provide customerDistrict so the profile can be created and linked.")
+    @Operation(summary = "[ADMIN] Assign a new meter to a customer", description = "Use customerNationalId as the preferred customer reference. customerId is kept only as an internal/backward-compatible fallback. If the National ID belongs to a registered ROLE_CUSTOMER user with no profile yet, also provide customerDistrict so the profile can be created and linked.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Meter assigned"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -45,7 +45,7 @@ public class MeterController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update meter details")
+    @Operation(summary = "[ADMIN] Update meter details")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Meter updated"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -61,7 +61,7 @@ public class MeterController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
-    @Operation(summary = "List all meters (paginated)")
+    @Operation(summary = "[ADMIN|OPERATOR] List all meters (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of meters"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -74,7 +74,7 @@ public class MeterController {
 
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR') or hasRole('CUSTOMER')")
-    @Operation(summary = "List meters for a specific customer", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID.")
+    @Operation(summary = "[ADMIN|OPERATOR|CUSTOMER] List meters for a specific customer", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "List of meters for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -86,7 +86,7 @@ public class MeterController {
 
     @GetMapping("/customer/national-id/{nationalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR') or hasRole('CUSTOMER')")
-    @Operation(summary = "List meters for a customer by National ID", description = "Recommended user-facing meter lookup. National ID maps to the customer profile that owns the meters.")
+    @Operation(summary = "[ADMIN|OPERATOR|CUSTOMER] List meters for a customer by National ID", description = "Recommended user-facing meter lookup. National ID maps to the customer profile that owns the meters.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "List of meters for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -98,7 +98,7 @@ public class MeterController {
 
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Activate a meter")
+    @Operation(summary = "[ADMIN] Activate a meter")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Meter activated"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -110,7 +110,7 @@ public class MeterController {
 
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Deactivate a meter")
+    @Operation(summary = "[ADMIN] Deactivate a meter")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Meter deactivated"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

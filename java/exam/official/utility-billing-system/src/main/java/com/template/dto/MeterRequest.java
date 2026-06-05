@@ -43,6 +43,7 @@ public class MeterRequest {
 
     @NotNull(message = "Installation date is required")
     @PastOrPresent(message = "Installation date cannot be in the future")
+    @Schema(type = "string", format = "date", example = "2026-06-07", description = "Installation date in yyyy-MM-dd format")
     private LocalDate installationDate;
 
     @NotBlank(message = "Installation address is required")

@@ -30,7 +30,7 @@ public class BillController {
 
     @PostMapping("/generate")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
-    @Operation(summary = "Generate a utility bill for a meter and billing month")
+    @Operation(summary = "[ADMIN|FINANCE] Generate a utility bill for a meter and billing month")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Bill generated"),
         @ApiResponse(responseCode = "400", description = "Validation error, inactive customer, or future billing month"),
@@ -43,7 +43,7 @@ public class BillController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
-    @Operation(summary = "List all bills (paginated)")
+    @Operation(summary = "[ADMIN|FINANCE] List all bills (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of bills"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -56,7 +56,7 @@ public class BillController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get bill by ID")
+    @Operation(summary = "[ADMIN|FINANCE|CUSTOMER] Get bill by ID")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Bill found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -68,7 +68,7 @@ public class BillController {
 
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
-    @Operation(summary = "List bills for a specific customer (paginated)")
+    @Operation(summary = "[ADMIN|FINANCE|CUSTOMER] List bills for a specific customer (paginated)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of bills for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -84,7 +84,7 @@ public class BillController {
 
     @GetMapping("/customer/national-id/{nationalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
-    @Operation(summary = "List bills for a customer by National ID (paginated)", description = "Recommended customer-facing bill lookup.")
+    @Operation(summary = "[ADMIN|FINANCE|CUSTOMER] List bills for a customer by National ID (paginated)", description = "Recommended customer-facing bill lookup.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Paginated list of bills for the customer"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

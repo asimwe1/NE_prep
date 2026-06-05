@@ -23,6 +23,7 @@ public class MeterReadingRequest {
 
     @NotNull(message = "Reading date is required")
     @PastOrPresent(message = "Reading date must be today or in the past")
+    @Schema(type = "string", format = "date", example = "2026-06-07", description = "Reading date in yyyy-MM-dd format")
     private LocalDate readingDate;
 
     @NotNull(message = "Billing month is required")

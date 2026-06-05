@@ -34,7 +34,7 @@ public class AdminUserController {
 
     @GetMapping
     @Operation(
-            summary = "List all users",
+            summary = "[ADMIN] List all users",
             description = "Returns users using simple pagination. Use only page and size; sort parameters are intentionally not exposed."
     )
     public ResponseEntity<Page<UserResponse>> listUsers(
@@ -48,7 +48,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get user by ID")
+    @Operation(summary = "[ADMIN] Get user by ID")
     public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
@@ -56,7 +56,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{id}/enable")
-    @Operation(summary = "Enable a user account")
+    @Operation(summary = "[ADMIN] Enable a user account")
     public ResponseEntity<UserResponse> enableUser(@PathVariable UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
@@ -66,7 +66,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{id}/disable")
-    @Operation(summary = "Disable a user account")
+    @Operation(summary = "[ADMIN] Disable a user account")
     public ResponseEntity<UserResponse> disableUser(@PathVariable UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
@@ -76,7 +76,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{id}/role")
-    @Operation(summary = "Update a user's role", description = "Admin-only endpoint for assigning ROLE_ADMIN, ROLE_OPERATOR, ROLE_FINANCE, or ROLE_CUSTOMER.")
+    @Operation(summary = "[ADMIN] Update a user's role", description = "Admin-only endpoint for assigning ROLE_ADMIN, ROLE_OPERATOR, ROLE_FINANCE, or ROLE_CUSTOMER.")
     public ResponseEntity<UserResponse> updateRole(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserRoleRequest request) {
@@ -88,7 +88,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a user")
+    @Operation(summary = "[ADMIN] Delete a user")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", id);
