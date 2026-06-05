@@ -71,9 +71,21 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.listCustomers(PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
     }
 
+    @GetMapping("/national-id/{nationalId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    @Operation(summary = "Get customer by National ID", description = "Recommended customer lookup for Swagger/Postman because National ID is the customer-facing identifier.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<CustomerResponse> getByNationalId(@PathVariable String nationalId) {
+        return ResponseEntity.ok(customerService.getByNationalId(nationalId));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get customer by ID", description = "Accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID.")
+    @Operation(summary = "Get customer by internal ID", description = "Backward-compatible lookup. Prefer /national-id/{nationalId} for user-facing operations.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),

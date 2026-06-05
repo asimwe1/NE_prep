@@ -113,10 +113,18 @@ public class NotificationService {
                 .map(this::toResponse);
     }
 
+    public Page<NotificationResponse> listByCustomerNationalId(String nationalId, Pageable pageable) {
+        Customer customer = customerRepository.findByNationalId(nationalId.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with national ID", nationalId));
+        return notificationRepository.findByCustomerOrderByCreatedAtDesc(customer, pageable)
+                .map(this::toResponse);
+    }
+
     private NotificationResponse toResponse(CustomerNotification n) {
         return NotificationResponse.builder()
                 .id(n.getId())
                 .customerId(n.getCustomer().getId())
+                .customerNationalId(n.getCustomer().getNationalId())
                 .customerName(n.getCustomer().getFullName())
                 .type(n.getType())
                 .status(n.getStatus())

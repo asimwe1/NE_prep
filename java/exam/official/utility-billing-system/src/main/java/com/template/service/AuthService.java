@@ -7,6 +7,7 @@ import com.template.entity.User;
 import com.template.entity.UserStatus;
 import com.template.exception.*;
 import com.template.repository.UserRepository;
+import com.template.repository.CustomerRepository;
 import com.template.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -49,6 +51,12 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException(request.getEmail());
         }
+        if (userRepository.existsByNationalId(request.getNationalId().trim())) {
+            throw new DuplicateNationalIdException(request.getNationalId());
+        }
+        if (customerRepository.existsByNationalId(request.getNationalId().trim())) {
+            throw new DuplicateNationalIdException(request.getNationalId());
+        }
 
         String verificationToken = UUID.randomUUID().toString();
 
@@ -57,6 +65,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName().trim())
                 .phoneNumber(request.getPhoneNumber().trim())
+                .nationalId(request.getNationalId().trim())
                 .role(Role.ROLE_CUSTOMER)
                 .status(UserStatus.INACTIVE)   // must verify email first
                 .verificationToken(verificationToken)
@@ -225,6 +234,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
+                .nationalId(user.getNationalId())
                 .role(user.getRole())
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt())

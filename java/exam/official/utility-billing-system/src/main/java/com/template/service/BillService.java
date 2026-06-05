@@ -119,6 +119,12 @@ public class BillService {
                 .map(this::toResponse);
     }
 
+    public Page<BillResponse> getBillsByCustomerNationalId(String nationalId, Pageable pageable) {
+        Customer customer = customerService.findByNationalIdOrThrow(nationalId);
+        return billRepository.findByCustomerOrderByBillingMonthDesc(customer, pageable)
+                .map(this::toResponse);
+    }
+
     public Bill findOrThrow(UUID id) {
         return billRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill", id));
@@ -183,6 +189,7 @@ public class BillService {
                 .id(b.getId())
                 .billNumber(b.getBillNumber())
                 .customerId(b.getCustomer().getId())
+                .customerNationalId(b.getCustomer().getNationalId())
                 .customerName(b.getCustomer().getFullName())
                 .customerNumber(b.getCustomer().getCustomerNumber())
                 .meterId(b.getMeter().getId())

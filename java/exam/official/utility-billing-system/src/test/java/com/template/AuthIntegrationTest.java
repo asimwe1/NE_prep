@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,6 +35,8 @@ class AuthIntegrationTest {
     @Value("${app.admin.default-password}")
     String adminPassword;
 
+    private static final AtomicLong NID_SEQ = new AtomicLong(1199880300000100L);
+
     @Test
     void registerValidUser_returns201() throws Exception {
         RegisterRequest req = new RegisterRequest();
@@ -40,6 +44,7 @@ class AuthIntegrationTest {
         req.setPassword("SecurePass1!");
         req.setFullName("John Doe");
         req.setPhoneNumber("+250780000001");
+        req.setNationalId(nextNationalId());
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,6 +72,7 @@ class AuthIntegrationTest {
         req.setPassword("SecurePass1!");
         req.setFullName("Utility Customer");
         req.setPhoneNumber("+250780000002");
+        req.setNationalId(nextNationalId());
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,6 +82,7 @@ class AuthIntegrationTest {
         User user = userRepository.findByEmail(req.getEmail()).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(user.getFullName()).isEqualTo("Utility Customer");
         org.assertj.core.api.Assertions.assertThat(user.getPhoneNumber()).isEqualTo("+250780000002");
+        org.assertj.core.api.Assertions.assertThat(user.getNationalId()).isEqualTo(req.getNationalId());
         org.assertj.core.api.Assertions.assertThat(user.getRole()).isEqualTo(Role.ROLE_CUSTOMER);
         org.assertj.core.api.Assertions.assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
     }
@@ -144,6 +151,7 @@ class AuthIntegrationTest {
         req.setPassword(password);
         req.setFullName("Limited Customer");
         req.setPhoneNumber("+250780000004");
+        req.setNationalId(nextNationalId());
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -193,6 +201,7 @@ class AuthIntegrationTest {
         req.setPassword("SecurePass1!");
         req.setFullName("Jane Doe");
         req.setPhoneNumber("+250780000003");
+        req.setNationalId(nextNationalId());
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -218,5 +227,9 @@ class AuthIntegrationTest {
                 .getContentAsString();
 
         return objectMapper.readTree(response).get("accessToken").asText();
+    }
+
+    private String nextNationalId() {
+        return String.valueOf(NID_SEQ.getAndIncrement());
     }
 }

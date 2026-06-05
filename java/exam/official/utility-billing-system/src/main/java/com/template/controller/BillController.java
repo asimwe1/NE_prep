@@ -81,4 +81,20 @@ public class BillController {
         return ResponseEntity.ok(
                 billService.getBillsByCustomer(customerId, PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
     }
+
+    @GetMapping("/customer/national-id/{nationalId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
+    @Operation(summary = "List bills for a customer by National ID (paginated)", description = "Recommended customer-facing bill lookup.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of bills for the customer"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<Page<BillResponse>> getByCustomerNationalId(
+            @PathVariable String nationalId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                billService.getBillsByCustomerNationalId(nationalId, PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
+    }
 }

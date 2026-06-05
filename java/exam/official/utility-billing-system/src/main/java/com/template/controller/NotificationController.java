@@ -55,4 +55,21 @@ public class NotificationController {
                 notificationService.listByCustomer(customerId,
                         PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
     }
+
+    @GetMapping("/customer/national-id/{nationalId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    @Operation(summary = "List notifications for a customer by National ID (paginated)", description = "Recommended customer-facing notification lookup.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of notifications for the customer"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<Page<NotificationResponse>> getByCustomerNationalId(
+            @PathVariable String nationalId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                notificationService.listByCustomerNationalId(nationalId,
+                        PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
+    }
 }

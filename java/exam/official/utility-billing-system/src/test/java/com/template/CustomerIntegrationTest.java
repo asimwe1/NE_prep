@@ -194,11 +194,13 @@ class CustomerIntegrationTest {
     void createCustomerWithExistingUserId_thenGetByUserId_returnsCustomer() throws Exception {
         String token = loginAsAdmin();
         String email = "linked_customer_" + System.nanoTime() + "@example.com";
+        String nationalId = String.valueOf(NID_SEQ.getAndIncrement());
         RegisterRequest register = new RegisterRequest();
         register.setEmail(email);
         register.setPassword("SecurePass1!");
         register.setFullName("Linked Customer");
         register.setPhoneNumber("+250788000002");
+        register.setNationalId(nationalId);
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -206,7 +208,7 @@ class CustomerIntegrationTest {
                 .andExpect(status().isCreated());
 
         String userId = userRepository.findByEmail(email).orElseThrow().getId().toString();
-        CustomerRequest customer = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerRequest customer = validCustomerRequest(nationalId);
         customer.setUserId(java.util.UUID.fromString(userId));
 
         mockMvc.perform(post("/api/v1/customers")
@@ -223,6 +225,12 @@ class CustomerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.nationalId").value(customer.getNationalId()));
+
+        mockMvc.perform(get("/api/v1/customers/national-id/" + nationalId)
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.nationalId").value(nationalId));
     }
 
     private CustomerRequest validCustomerRequest(String nationalId) {

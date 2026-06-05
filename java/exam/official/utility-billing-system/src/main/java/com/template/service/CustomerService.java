@@ -39,6 +39,7 @@ public class CustomerService {
             throw new DuplicateNationalIdException(request.getNationalId());
         }
         User linkedUser = resolveLinkedCustomerUser(request.getUserId());
+        syncLinkedUserNationalId(linkedUser, request.getNationalId());
         Customer customer = Customer.builder()
                 .user(linkedUser)
                 .customerNumber(generateCustomerNumber())
@@ -76,6 +77,7 @@ public class CustomerService {
             linkedUser = resolveLinkedCustomerUser(request.getUserId());
             customer.setUser(linkedUser);
         }
+        syncLinkedUserNationalId(linkedUser, request.getNationalId());
         customer.setFullName(valueOrUserFullName(request, linkedUser));
         customer.setNationalId(request.getNationalId().trim());
         customer.setEmail(valueOrUserEmail(request, linkedUser));
@@ -94,9 +96,7 @@ public class CustomerService {
     }
 
     public CustomerResponse getByNationalId(String nationalId) {
-        Customer customer = customerRepository.findByNationalId(nationalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer with national ID", nationalId));
-        return toResponse(customer);
+        return toResponse(findByNationalIdOrThrow(nationalId));
     }
 
     @Transactional
@@ -131,11 +131,29 @@ public class CustomerService {
                 });
     }
 
+    public Customer findByNationalIdOrThrow(String nationalId) {
+        return customerRepository.findByNationalId(nationalId.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with national ID", nationalId));
+    }
+
     @Transactional
     public Customer findOrCreateForMeterAssignment(UUID id, String nationalId, String address, String district) {
+        if (hasText(nationalId)) {
+            return findOrCreateForMeterAssignmentByNationalId(nationalId, address, district);
+        }
+        if (id == null) {
+            throw new IllegalArgumentException("Provide customerNationalId to assign a meter. customerId is only an internal fallback.");
+        }
         return customerRepository.findById(id)
                 .or(() -> customerRepository.findByUserId(id))
                 .orElseGet(() -> createProfileForCustomerUser(id, nationalId, address, district));
+    }
+
+    @Transactional
+    public Customer findOrCreateForMeterAssignmentByNationalId(String nationalId, String address, String district) {
+        String normalizedNationalId = nationalId.trim();
+        return customerRepository.findByNationalId(normalizedNationalId)
+                .orElseGet(() -> createProfileForCustomerUserByNationalId(normalizedNationalId, address, district));
     }
 
     private CustomerResponse toResponse(Customer c) {
@@ -179,14 +197,39 @@ public class CustomerService {
         return user;
     }
 
+    private void syncLinkedUserNationalId(User user, String nationalId) {
+        if (user == null) {
+            return;
+        }
+        String normalizedNationalId = nationalId.trim();
+        if (hasText(user.getNationalId()) && !user.getNationalId().equals(normalizedNationalId)) {
+            throw new IllegalArgumentException("Linked user National ID must match the customer National ID.");
+        }
+        if (!hasText(user.getNationalId())) {
+            user.setNationalId(normalizedNationalId);
+            userRepository.save(user);
+        }
+    }
+
     private Customer createProfileForCustomerUser(UUID userId, String nationalId, String address, String district) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer profile or user", userId));
+        String resolvedNationalId = hasText(nationalId) ? nationalId.trim() : user.getNationalId();
+        return createProfileForCustomerUser(user, resolvedNationalId, address, district);
+    }
+
+    private Customer createProfileForCustomerUserByNationalId(String nationalId, String address, String district) {
+        User user = userRepository.findByNationalId(nationalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer profile or user with national ID", nationalId));
+        return createProfileForCustomerUser(user, nationalId, address, district);
+    }
+
+    private Customer createProfileForCustomerUser(User user, String nationalId, String address, String district) {
         if (user.getRole() != Role.ROLE_CUSTOMER) {
             throw new IllegalArgumentException("Only ROLE_CUSTOMER users can own meters. ROLE_OPERATOR users capture readings; they do not own customer meters.");
         }
-        if (nationalId == null || nationalId.isBlank() || district == null || district.isBlank()) {
-            throw new IllegalArgumentException("Customer profile is missing for this user. Provide customerNationalId and customerDistrict on meter assignment, or create the customer profile first.");
+        if (!hasText(nationalId) || !hasText(district)) {
+            throw new IllegalArgumentException("Customer profile is missing for this National ID. Provide customerDistrict on meter assignment, or create the customer profile first.");
         }
         if (customerRepository.existsByNationalId(nationalId.trim())) {
             throw new DuplicateNationalIdException(nationalId);
@@ -215,5 +258,9 @@ public class CustomerService {
 
     private String valueOrUserPhone(CustomerRequest request, User user) {
         return user == null ? request.getPhoneNumber().trim() : user.getPhoneNumber().trim();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

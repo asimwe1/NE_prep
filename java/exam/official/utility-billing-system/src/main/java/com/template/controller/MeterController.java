@@ -31,7 +31,7 @@ public class MeterController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Assign a new meter to a customer", description = "customerId accepts either the customer profile ID or a ROLE_CUSTOMER user ID. If the user has no customer profile yet, also provide customerNationalId and customerDistrict so the profile can be created and linked.")
+    @Operation(summary = "Assign a new meter to a customer", description = "Use customerNationalId as the preferred customer reference. customerId is kept only as an internal/backward-compatible fallback. If the National ID belongs to a registered ROLE_CUSTOMER user with no profile yet, also provide customerDistrict so the profile can be created and linked.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Meter assigned"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -82,6 +82,18 @@ public class MeterController {
     })
     public ResponseEntity<List<MeterResponse>> listByCustomer(@PathVariable UUID customerId) {
         return ResponseEntity.ok(meterService.listByCustomer(customerId));
+    }
+
+    @GetMapping("/customer/national-id/{nationalId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR') or hasRole('CUSTOMER')")
+    @Operation(summary = "List meters for a customer by National ID", description = "Recommended user-facing meter lookup. National ID maps to the customer profile that owns the meters.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "List of meters for the customer"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<List<MeterResponse>> listByCustomerNationalId(@PathVariable String nationalId) {
+        return ResponseEntity.ok(meterService.listByCustomerNationalId(nationalId));
     }
 
     @PatchMapping("/{id}/activate")

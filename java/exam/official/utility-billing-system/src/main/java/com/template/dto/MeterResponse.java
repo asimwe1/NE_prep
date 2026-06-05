@@ -25,6 +25,7 @@ public class MeterResponse {
     private BillingMode billingMode;
     private CompanyType company;
     private UUID customerId;
+    private String customerNationalId;
     private String customerName;
     private String installationAddress;
     private LocalDate installationDate;

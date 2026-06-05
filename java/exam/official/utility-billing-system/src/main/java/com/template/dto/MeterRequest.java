@@ -29,15 +29,14 @@ public class MeterRequest {
     @NotNull(message = "Company type is required")
     private CompanyType companyType;
 
-    @NotNull(message = "Customer ID is required")
-    @Schema(description = "Customer profile ID, or the linked ROLE_CUSTOMER user ID")
+    @Schema(description = "Deprecated/internal fallback: customer profile ID or linked ROLE_CUSTOMER user ID. Prefer customerNationalId for Swagger/Postman use.")
     private UUID customerId;
 
-    @Schema(description = "Required only when customerId is a ROLE_CUSTOMER user ID that does not yet have a customer profile")
+    @Schema(description = "Preferred customer reference for meter assignment. If no customer profile exists yet, the system can create one from the registered ROLE_CUSTOMER user with this National ID.", example = "1199880200000100")
     @ValidNationalId
     private String customerNationalId;
 
-    @Schema(description = "Required only when customerId is a ROLE_CUSTOMER user ID that does not yet have a customer profile")
+    @Schema(description = "Required when customerNationalId belongs to a registered ROLE_CUSTOMER user that does not yet have a customer profile")
     @Size(min = 2, max = 100, message = "District must be between 2 and 100 characters")
     @ValidName
     private String customerDistrict;

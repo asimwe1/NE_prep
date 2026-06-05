@@ -36,6 +36,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String phoneNumber;
 
+    @Column(unique = true)
+    private String nationalId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -55,7 +58,7 @@ public class User implements UserDetails {
 
     private LocalDateTime accessTokensInvalidatedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "integer default 0")
     private int tokenVersion;
 
     @Column(nullable = false, updatable = false)

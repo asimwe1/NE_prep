@@ -88,6 +88,7 @@ public class PaymentService {
                 .billId(bill.getId())
                 .billNumber(bill.getBillNumber())
                 .customerId(bill.getCustomer().getId())
+                .customerNationalId(bill.getCustomer().getNationalId())
                 .customerName(bill.getCustomer().getFullName())
                 .amount(p.getAmount())
                 .paymentMethod(p.getPaymentMethod())

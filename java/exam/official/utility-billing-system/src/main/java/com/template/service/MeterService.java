@@ -93,6 +93,14 @@ public class MeterService {
                 .collect(Collectors.toList());
     }
 
+    public List<MeterResponse> listByCustomerNationalId(String nationalId) {
+        Customer customer = customerService.findByNationalIdOrThrow(nationalId);
+        return meterRepository.findByCustomer(customer)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public MeterResponse activate(UUID id) {
         UtilityMeter meter = findOrThrow(id);
@@ -120,6 +128,7 @@ public class MeterService {
                 .billingMode(m.getBillingMode())
                 .company(m.getCompany())
                 .customerId(m.getCustomer().getId())
+                .customerNationalId(m.getCustomer().getNationalId())
                 .customerName(m.getCustomer().getFullName())
                 .installationAddress(m.getInstallationAddress())
                 .installationDate(m.getInstallationDate())

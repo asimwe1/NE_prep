@@ -21,6 +21,7 @@ public class PaymentResponse {
     private UUID billId;
     private String billNumber;
     private UUID customerId;
+    private String customerNationalId;
     private String customerName;
     private BigDecimal amount;
     private String paymentMethod;

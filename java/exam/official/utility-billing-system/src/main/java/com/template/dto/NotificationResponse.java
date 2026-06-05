@@ -17,6 +17,7 @@ import java.util.UUID;
 public class NotificationResponse {
     private UUID id;
     private UUID customerId;
+    private String customerNationalId;
     private String customerName;
     private NotificationType type;
     private NotificationStatus status;

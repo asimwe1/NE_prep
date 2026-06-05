@@ -24,6 +24,10 @@ import java.util.Set;
                 monthly meter readings, postpaid billing, payments, notifications, JWT authentication, and admin
                 user management.
 
+                Customer-facing operations use National ID as the preferred identifier. Internal UUID routes remain
+                available for backward compatibility, but Swagger/Postman workflows should use customerNationalId
+                on meter assignment and /customer/national-id/{nationalId} listing routes.
+
                 Local development uses PostgreSQL by default:
                 DB_URL=jdbc:postgresql://localhost:5432/utility_billing_db
                 DB_USERNAME=postgres

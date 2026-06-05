@@ -19,6 +19,7 @@ public class BillResponse {
     private UUID id;
     private String billNumber;
     private UUID customerId;
+    private String customerNationalId;
     private String customerName;
     private String customerNumber;
     private UUID meterId;

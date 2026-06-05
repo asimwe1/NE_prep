@@ -496,3 +496,21 @@ Committed as `asimwe001`.
 - `ROLE_OPERATOR` user IDs are rejected as meter owners with a clear `400` message because operators capture readings, while customer profiles own meters.
 - Unknown IDs are rejected as `404 Customer profile or user not found`.
 - Added integration tests for first-meter auto-profile creation, missing profile fields, unknown IDs, and operator-owner rejection.
+
+---
+
+### National ID Customer Identifier Refinement
+
+- Added `nationalId` to user registration and persisted it on the user account.
+- User responses now expose `nationalId` so login/profile responses show the customer-facing identifier.
+- Meter assignment now prefers `customerNationalId`; `customerId` remains as an internal/backward-compatible fallback.
+- If a registered `ROLE_CUSTOMER` user has no customer profile yet, assigning a meter by `customerNationalId` can create the missing profile using `customerDistrict` and the installation address.
+- Added National ID lookup routes for customers, meters, bills, and notifications:
+  - `GET /api/v1/customers/national-id/{nationalId}`
+  - `GET /api/v1/meters/customer/national-id/{nationalId}`
+  - `GET /api/v1/bills/customer/national-id/{nationalId}`
+  - `GET /api/v1/notifications/customer/national-id/{nationalId}`
+- Meter, bill, notification, and payment responses now include `customerNationalId` beside the internal UUID.
+- Updated Swagger descriptions to make National ID the recommended Swagger/Postman workflow.
+- Updated integration tests for registration National ID persistence and meter assignment/listing by National ID.
+- Verified full test suite after refinement: `Tests run: 69, Failures: 0, Errors: 0`.

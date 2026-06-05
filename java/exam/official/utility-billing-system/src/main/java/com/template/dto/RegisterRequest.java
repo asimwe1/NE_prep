@@ -1,7 +1,9 @@
 package com.template.dto;
 
 import com.template.validation.ValidName;
+import com.template.validation.ValidNationalId;
 import com.template.validation.ValidRwandanPhone;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -28,4 +30,9 @@ public class RegisterRequest {
     @NotBlank(message = "Phone number is required")
     @ValidRwandanPhone
     private String phoneNumber;
+
+    @Schema(description = "Customer-facing National ID used later for meters, bills, and notifications", example = "1199880200000100")
+    @NotBlank(message = "National ID is required")
+    @ValidNationalId
+    private String nationalId;
 }

@@ -25,7 +25,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(
             summary = "Register a new user",
-            description = "Creates an INACTIVE ROLE_CUSTOMER account with full names, email, phone number, and password, then sends an email verification link through SMTP. If EMAIL_DELIVERY=log, copy the verification actionUrl from the application logs."
+            description = "Creates an INACTIVE ROLE_CUSTOMER account with full names, email, phone number, National ID, and password, then sends an email verification link through SMTP. National ID is the customer-facing identifier used later for meters, bills, and notifications. If EMAIL_DELIVERY=log, copy the verification actionUrl from the application logs."
     )
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));

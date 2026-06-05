@@ -163,7 +163,7 @@ class MeterIntegrationTest {
     void assignMeterWithCustomerUserIdWithoutProfile_createsProfileAndMeter() throws Exception {
         UUID userId = registerCustomerUser("meter_auto_profile_" + System.nanoTime() + "@example.com");
         MeterRequest req = validMeterRequest("MTR-AUTOPROFILE-001", userId);
-        req.setCustomerNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        req.setCustomerNationalId(userRepository.findById(userId).orElseThrow().getNationalId());
         req.setCustomerDistrict("Gasabo");
 
         mockMvc.perform(post("/api/v1/meters")
@@ -181,6 +181,28 @@ class MeterIntegrationTest {
     }
 
     @Test
+    void assignMeterWithCustomerNationalId_createsProfileAndListsByNationalId() throws Exception {
+        UUID userId = registerCustomerUser("meter_national_id_" + System.nanoTime() + "@example.com");
+        String nationalId = userRepository.findById(userId).orElseThrow().getNationalId();
+        MeterRequest req = validMeterRequest("MTR-NID-001", null);
+        req.setCustomerNationalId(nationalId);
+        req.setCustomerDistrict("Gasabo");
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.customerNationalId").value(nationalId))
+                .andExpect(jsonPath("$.meterNumber").value("MTR-NID-001"));
+
+        mockMvc.perform(get("/api/v1/meters/customer/national-id/" + nationalId)
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].meterNumber").value("MTR-NID-001"));
+    }
+
+    @Test
     void assignMeterWithOperatorUserId_returns400() throws Exception {
         String email = "operator_meter_owner_" + System.nanoTime() + "@example.com";
         UUID userId = registerCustomerUser(email);
@@ -189,7 +211,7 @@ class MeterIntegrationTest {
         userRepository.save(user);
 
         MeterRequest req = validMeterRequest("MTR-OPERATOR-001", userId);
-        req.setCustomerNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        req.setCustomerNationalId(user.getNationalId());
         req.setCustomerDistrict("Gasabo");
 
         mockMvc.perform(post("/api/v1/meters")
@@ -210,7 +232,7 @@ class MeterIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Customer profile is missing for this user. Provide customerNationalId and customerDistrict on meter assignment, or create the customer profile first."));
+                .andExpect(jsonPath("$.message").value("Customer profile is missing for this National ID. Provide customerDistrict on meter assignment, or create the customer profile first."));
     }
 
     @Test
@@ -224,7 +246,7 @@ class MeterIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.startsWith("Customer profile or user not found with id:")));
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.startsWith("Customer profile or user with national ID not found with id:")));
     }
 
     // ─── Activate / Deactivate ────────────────────────────────────────────────
@@ -284,7 +306,7 @@ class MeterIntegrationTest {
         CustomerRequest customer = new CustomerRequest();
         customer.setUserId(userId);
         customer.setFullName("Ignored Because Linked User Wins");
-        customer.setNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        customer.setNationalId(userRepository.findById(userId).orElseThrow().getNationalId());
         customer.setEmail("ignored" + System.nanoTime() + "@example.com");
         customer.setPhoneNumber("+250788000004");
         customer.setAddress("KN 15 Ave, Kigali");
@@ -306,6 +328,7 @@ class MeterIntegrationTest {
         register.setPassword("SecurePass1!");
         register.setFullName("Meter Linked Customer");
         register.setPhoneNumber("+250788000003");
+        register.setNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
