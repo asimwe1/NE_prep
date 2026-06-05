@@ -34,7 +34,7 @@ Open:
 Default admin:
 
 - `admin@example.com`
-- `Admin@1234`
+- configured by `app.admin.default-password`
 
 ### Run production profile locally
 
@@ -69,15 +69,15 @@ Example `.env` values:
 
 ```dotenv
 DB_URL=jdbc:postgresql://localhost:5432/templatedb
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=your-secret
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password
+JWT_SECRET=replace_with_a_generated_secret
 JWT_EXPIRATION=86400000
 JWT_REFRESH_EXPIRATION=604800000
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=you@gmail.com
-MAIL_PASSWORD=app-password
+MAIL_HOST=localhost
+MAIL_PORT=1025
+MAIL_USERNAME=
+MAIL_PASSWORD=
 MAIL_FROM=noreply@yourapp.com
 MAIL_FROM_NAME=YourApp
 APP_BASE_URL=http://localhost:8080
