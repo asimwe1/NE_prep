@@ -103,6 +103,8 @@ For Gmail SMTP, create a Gmail app password, put it in `MAIL_PASSWORD` inside `.
 
 To send through SMTP instead of logging email links, set `EMAIL_DELIVERY=smtp`. For local Mailpit, keep `MAIL_HOST=localhost`, `MAIL_PORT=1025`, and open Mailpit at `http://localhost:8025`. For Gmail, also set `MAIL_SMTP_AUTH=true`, `MAIL_STARTTLS=true`, and `MAIL_STARTTLS_REQUIRED=true`.
 
+When `EMAIL_DELIVERY=log`, keep `MAIL_HEALTH_ENABLED=false` so Actuator does not check a local SMTP server that is not running.
+
 ## API docs
 
 - Swagger UI: `http://localhost:8080/swagger-ui.html`

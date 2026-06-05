@@ -22,3 +22,8 @@ logging:
 app:
   email:
     delivery: ${EMAIL_DELIVERY:smtp}
+
+management:
+  health:
+    mail:
+      enabled: ${MAIL_HEALTH_ENABLED:true}
