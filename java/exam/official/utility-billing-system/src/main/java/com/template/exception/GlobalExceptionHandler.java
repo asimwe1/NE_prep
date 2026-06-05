@@ -145,6 +145,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        if (hasCause(ex, AccessDeniedException.class)) {
+            return build(HttpStatus.FORBIDDEN, "Access denied: your role is not allowed to use this endpoint.");
+        }
         log.error("Unhandled exception", ex);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
@@ -164,6 +167,17 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(status).body(body);
+    }
+
+    private boolean hasCause(Throwable ex, Class<? extends Throwable> type) {
+        Throwable current = ex;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     // Error body 

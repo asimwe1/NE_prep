@@ -417,3 +417,11 @@ Maintainer: asimwe001 / asimwe1
 - Added a JSON `403 Forbidden` response for authenticated users whose role is not allowed to use an endpoint.
 - Added defensive auth-principal checks in authenticated auth endpoints to avoid null-user service errors.
 - Added integration tests for unauthenticated profile access and customer-role access to the admin-only customer list.
+
+---
+
+### Access Denied Swagger and Runtime Cleanup
+
+- Added explicit and wrapped-cause handling for Spring Security `AccessDeniedException` so role failures return `403 Forbidden` instead of reaching the generic `500` handler.
+- Added a global Swagger customizer that documents `401 Unauthorized` and `403 Forbidden` on protected endpoints.
+- Kept public auth endpoints excluded from the global protected-endpoint Swagger responses.
