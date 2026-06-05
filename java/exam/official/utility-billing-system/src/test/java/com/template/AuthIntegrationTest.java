@@ -122,6 +122,20 @@ class AuthIntegrationTest {
     }
 
     @Test
+    void logoutInvalidatesCurrentAccessToken() throws Exception {
+        String token = loginAsAdmin();
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        mockMvc.perform(get("/api/v1/auth/me")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void customerAccessingAdminCustomerList_returns403() throws Exception {
         String email = "limited_customer_" + System.currentTimeMillis() + "@example.com";
         String password = "SecurePass1!";

@@ -122,6 +122,8 @@ public class AuthService {
 
     @Transactional
     public MessageResponse logout(User user) {
+        user.setAccessTokensInvalidatedAt(LocalDateTime.now());
+        userRepository.save(user);
         refreshTokenService.deleteByUser(user);
         return MessageResponse.of("Logged out successfully.");
     }
@@ -164,6 +166,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiry(null);
+        user.setAccessTokensInvalidatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         refreshTokenService.deleteByUser(user);
@@ -180,6 +183,7 @@ public class AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setAccessTokensInvalidatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         refreshTokenService.deleteByUser(user);

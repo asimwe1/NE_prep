@@ -1,5 +1,6 @@
 package com.template.security;
 
+import com.template.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,11 +58,23 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
-            return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            return username.equals(userDetails.getUsername())
+                    && !isTokenExpired(token)
+                    && !isTokenInvalidated(token, userDetails);
         } catch (JwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
             return false;
         }
+    }
+
+    private boolean isTokenInvalidated(String token, UserDetails userDetails) {
+        if (!(userDetails instanceof User user) || user.getAccessTokensInvalidatedAt() == null) {
+            return false;
+        }
+        Date issuedAt = extractIssuedAt(token);
+        return !issuedAt.toInstant().isAfter(
+                user.getAccessTokensInvalidatedAt().atZone(ZoneId.systemDefault()).toInstant()
+        );
     }
 
     private boolean isTokenExpired(String token) {
@@ -69,6 +83,10 @@ public class JwtService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    private Date extractIssuedAt(String token) {
+        return extractClaim(token, Claims::getIssuedAt);
     }
 
     private Claims extractAllClaims(String token) {

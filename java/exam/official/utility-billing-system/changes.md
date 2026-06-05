@@ -477,3 +477,11 @@ Committed as `asimwe001`.
 - Added an integration test covering create-by-existing-user-id and get-customer-by-user-id.
 - Documented meter `customerId` as accepting either a customer profile ID or linked customer user ID.
 - Added an integration test covering meter assignment and meter listing by linked user ID.
+
+---
+
+### Access Token Logout Invalidation
+
+- Added `accessTokensInvalidatedAt` to `User` so logout, password reset, and password change immediately invalidate existing JWT access tokens.
+- `JwtService` now rejects tokens issued at or before the user's invalidation timestamp.
+- Added an integration test proving the same access token cannot call `/api/v1/auth/me` after logout.

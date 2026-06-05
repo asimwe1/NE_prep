@@ -53,6 +53,8 @@ public class User implements UserDetails {
     private String passwordResetToken;
     private LocalDateTime passwordResetTokenExpiry;
 
+    private LocalDateTime accessTokensInvalidatedAt;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
