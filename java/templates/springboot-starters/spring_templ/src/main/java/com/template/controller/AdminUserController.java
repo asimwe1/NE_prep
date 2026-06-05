@@ -10,8 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +31,9 @@ public class AdminUserController {
     @GetMapping
     @Operation(summary = "List all users (paginated)")
     public ResponseEntity<Page<UserResponse>> listUsers(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        Page<UserResponse> users = userRepository.findAll(pageable)
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<UserResponse> users = userRepository.findAll(PageRequest.of(Math.max(page, 0), Math.max(size, 1)))
                 .map(authService::toUserResponse);
         return ResponseEntity.ok(users);
     }
