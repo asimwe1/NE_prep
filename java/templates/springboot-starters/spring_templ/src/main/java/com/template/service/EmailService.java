@@ -29,27 +29,30 @@ public class EmailService {
     @Value("${app.email.base-url}")
     private String baseUrl;
 
-    // ─── Public API ──────────────────────────────────────────────────────────
+    @Value("${app.email.delivery:log}")
+    private String deliveryMode;
 
     @Async
     public void sendVerificationEmail(String toEmail, String firstName, String token) {
+        String verificationUrl = baseUrl + "/api/v1/auth/verify-email?token=" + token;
         Context ctx = new Context();
         ctx.setVariable("name", firstName);
-        ctx.setVariable("verificationUrl", baseUrl + "/api/v1/auth/verify-email?token=" + token);
+        ctx.setVariable("verificationUrl", verificationUrl);
         ctx.setVariable("appName", fromName);
 
-        sendHtmlEmail(toEmail, "Verify Your Email Address", "email/verification", ctx);
+        sendHtmlEmail(toEmail, "Verify Your Email Address", "email/verification", ctx, verificationUrl);
     }
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String firstName, String token) {
+        String resetUrl = baseUrl + "/api/v1/auth/reset-password?token=" + token;
         Context ctx = new Context();
         ctx.setVariable("name", firstName);
-        ctx.setVariable("resetUrl", baseUrl + "/api/v1/auth/reset-password?token=" + token);
+        ctx.setVariable("resetUrl", resetUrl);
         ctx.setVariable("appName", fromName);
         ctx.setVariable("expiryMinutes", 60);
 
-        sendHtmlEmail(toEmail, "Reset Your Password", "email/password-reset", ctx);
+        sendHtmlEmail(toEmail, "Reset Your Password", "email/password-reset", ctx, resetUrl);
     }
 
     @Async
@@ -59,7 +62,7 @@ public class EmailService {
         ctx.setVariable("appName", fromName);
         ctx.setVariable("loginUrl", baseUrl + "/login");
 
-        sendHtmlEmail(toEmail, "Welcome to " + fromName + "!", "email/welcome", ctx);
+        sendHtmlEmail(toEmail, "Welcome to " + fromName + "!", "email/welcome", ctx, baseUrl + "/login");
     }
 
     @Async
@@ -69,19 +72,20 @@ public class EmailService {
         ctx.setVariable("appName", fromName);
         ctx.setVariable("supportEmail", from);
 
-        sendHtmlEmail(toEmail, "Your Password Has Been Changed", "email/password-changed", ctx);
+        sendHtmlEmail(toEmail, "Your Password Has Been Changed", "email/password-changed", ctx, null);
     }
-
-    // ─── Generic send (extend for your own use-cases) ────────────────────────
 
     @Async
     public void sendCustomEmail(String toEmail, String subject, String templateName, Context ctx) {
-        sendHtmlEmail(toEmail, subject, templateName, ctx);
+        sendHtmlEmail(toEmail, subject, templateName, ctx, null);
     }
 
-    // ─── Internal helper ─────────────────────────────────────────────────────
+    private void sendHtmlEmail(String to, String subject, String template, Context ctx, String actionUrl) {
+        if ("log".equalsIgnoreCase(deliveryMode)) {
+            log.info("Email delivery is in log mode. subject='{}', to='{}', actionUrl='{}'", subject, to, actionUrl);
+            return;
+        }
 
-    private void sendHtmlEmail(String to, String subject, String template, Context ctx) {
         try {
             String html = templateEngine.process(template, ctx);
             MimeMessage message = mailSender.createMimeMessage();

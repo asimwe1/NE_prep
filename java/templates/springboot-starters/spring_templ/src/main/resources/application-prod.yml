@@ -18,3 +18,7 @@ logging:
   level:
     com.template: INFO
     org.springframework.security: WARN
+
+app:
+  email:
+    delivery: ${EMAIL_DELIVERY:smtp}

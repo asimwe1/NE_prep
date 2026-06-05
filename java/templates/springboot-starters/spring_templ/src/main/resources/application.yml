@@ -24,10 +24,10 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${MAIL_SMTP_AUTH:false}
           starttls:
-            enable: true
-            required: true
+            enable: ${MAIL_STARTTLS:false}
+            required: ${MAIL_STARTTLS_REQUIRED:false}
 
   # Thymeleaf
   thymeleaf:
@@ -44,6 +44,7 @@ app:
 
   # Email settings
   email:
+    delivery: ${EMAIL_DELIVERY:log}
     from: ${MAIL_FROM:noreply@yourapp.com}
     from-name: ${MAIL_FROM_NAME:java ne project}
     base-url: ${APP_BASE_URL:http://localhost:8080}

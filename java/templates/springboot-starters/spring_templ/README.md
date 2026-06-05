@@ -39,6 +39,8 @@ Open:
 - `http://localhost:8080/swagger-ui.html`
 - `http://localhost:8080/h2-console`
 
+In local dev, verification and password-reset links are written to the application logs by default. Use the `actionUrl` from the log to verify the account or reset the password.
+
 Default admin:
 
 - `admin@example.com`
@@ -86,6 +88,9 @@ MAIL_HOST=localhost
 MAIL_PORT=1025
 MAIL_USERNAME=
 MAIL_PASSWORD=
+MAIL_SMTP_AUTH=false
+MAIL_STARTTLS=false
+MAIL_STARTTLS_REQUIRED=false
 MAIL_FROM=noreply@yourapp.com
 MAIL_FROM_NAME=YourApp
 APP_BASE_URL=http://localhost:8080
@@ -95,6 +100,8 @@ ADMIN_DEFAULT_PASSWORD=replace_with_a_local_admin_password
 `.env` is ignored by `.gitignore` and should remain local.
 
 For Gmail SMTP, create a Gmail app password, put it in `MAIL_PASSWORD` inside `.env`, and rotate it immediately if it is ever committed or shared.
+
+To send through SMTP instead of logging email links, set `EMAIL_DELIVERY=smtp`. For local Mailpit, keep `MAIL_HOST=localhost`, `MAIL_PORT=1025`, and open Mailpit at `http://localhost:8025`. For Gmail, also set `MAIL_SMTP_AUTH=true`, `MAIL_STARTTLS=true`, and `MAIL_STARTTLS_REQUIRED=true`.
 
 ## API docs
 

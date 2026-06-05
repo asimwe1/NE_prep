@@ -92,8 +92,9 @@ public class AuthService {
     // Login
     @Transactional 
     public AuthResponse login(LoginRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
         Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(email, request.getPassword())
         );
 
         User user = (User) auth.getPrincipal();
@@ -128,7 +129,8 @@ public class AuthService {
 
     @Transactional
     public MessageResponse forgotPassword(ForgotPasswordRequest request) {
-        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+        String email = request.getEmail().toLowerCase().trim();
+        userRepository.findByEmail(email).ifPresent(user -> {
             String resetToken = UUID.randomUUID().toString();
             user.setPasswordResetToken(resetToken);
             user.setPasswordResetTokenExpiry(LocalDateTime.now().plusMinutes(passwordResetTokenExpiryMinutes));
@@ -181,7 +183,7 @@ public class AuthService {
 
     @Transactional
     public MessageResponse resendVerification(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
+        userRepository.findByEmail(email.toLowerCase().trim()).ifPresent(user -> {
             if (!user.isEnabled()) {
                 String token = UUID.randomUUID().toString();
                 user.setVerificationToken(token);
