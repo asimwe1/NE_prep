@@ -1,7 +1,7 @@
 package com.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.template.dto.CustomerRequest;
+import com.template.dto.CustomerCreateRequest;
 import com.template.dto.LoginRequest;
 import com.template.dto.MeterReadingRequest;
 import com.template.dto.MeterRequest;
@@ -187,7 +187,7 @@ class MeterReadingIntegrationTest {
     }
 
     private UUID createCustomer(String nationalId) throws Exception {
-        CustomerRequest req = new CustomerRequest();
+        CustomerCreateRequest req = new CustomerCreateRequest();
         req.setFullName("Nshimiyimana Eric");
         req.setNationalId(nationalId);
         req.setEmail("eric" + System.nanoTime() + "@example.com");
@@ -201,7 +201,7 @@ class MeterReadingIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andReturn().getResponse().getContentAsString();
 
-        return UUID.fromString(objectMapper.readTree(body).get("id").asText());
+        return UUID.fromString(objectMapper.readTree(body).get("customerId").asText());
     }
 
     private String loginAsAdmin() throws Exception {

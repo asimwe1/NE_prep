@@ -19,33 +19,11 @@ import java.util.Set;
     info = @Info(
         title = "Utility Billing System API",
         version = "1.0.0",
-        description = """
-                Secure backend for WASAC and REG utility billing. The system manages customers, utility meters,
-                monthly meter readings, postpaid billing, payments, notifications, JWT authentication, and admin
-                user management.
-
-                Customer-facing operations use National ID as the preferred identifier. Internal UUID routes remain
-                available for backward compatibility, but Swagger/Postman workflows should use customerNationalId
-                on meter assignment and /customer/national-id/{nationalId} listing routes.
-
-                Local development uses PostgreSQL by default:
-                DB_URL=jdbc:postgresql://localhost:5432/utility_billing_db
-                DB_USERNAME=postgres
-                DB_PASSWORD=postgres
-
-                Secrets are loaded from a local .env file that must not be committed. Email delivery uses
-                SMTP when EMAIL_DELIVERY=smtp. For Gmail, configure smtp.gmail.com:587, STARTTLS,
-                MAIL_USERNAME, MAIL_PASSWORD, and MAIL_FROM in .env. If EMAIL_DELIVERY=log is used as a
-                fallback, verification and password-reset actionUrl values are printed to the logs.
-
-                Exam domain coverage: WASAC water meters, REG electricity meters, prepaid-to-postpaid transition,
-                monthly consumption, bill status tracking, payment recording, and notification delivery.
-                """,
-        contact = @Contact(name = "Utility Billing Exam Project", email = "noreply@utility-billing.local")
+        description = "WASAC/REG utility billing API. Login via /api/v1/auth/login, then Authorize with the JWT Bearer token.",
+        contact = @Contact(name = "Utility Billing API")
     ),
     servers = {
-        @Server(url = "http://localhost:8080", description = "Local development"),
-        @Server(url = "https://api.yourapp.com", description = "Production")
+        @Server(url = "http://localhost:8080", description = "Local")
     }
 )
 @SecurityScheme(

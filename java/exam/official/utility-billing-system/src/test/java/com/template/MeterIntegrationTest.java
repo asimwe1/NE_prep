@@ -1,7 +1,7 @@
 package com.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.template.dto.CustomerRequest;
+import com.template.dto.CustomerCreateRequest;
 import com.template.dto.LoginRequest;
 import com.template.dto.MeterRequest;
 import com.template.dto.RegisterRequest;
@@ -284,7 +284,7 @@ class MeterIntegrationTest {
     }
 
     private UUID createCustomer(String nationalId) throws Exception {
-        CustomerRequest req = new CustomerRequest();
+        CustomerCreateRequest req = new CustomerCreateRequest();
         req.setFullName("Mukamana Alice");
         req.setNationalId(nationalId);
         req.setEmail("alice" + System.nanoTime() + "@example.com");
@@ -298,12 +298,12 @@ class MeterIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andReturn().getResponse().getContentAsString();
 
-        return UUID.fromString(objectMapper.readTree(body).get("id").asText());
+        return UUID.fromString(objectMapper.readTree(body).get("customerId").asText());
     }
 
     private UUID createLinkedCustomerUser() throws Exception {
         UUID userId = registerCustomerUser("meter_linked_customer_" + System.nanoTime() + "@example.com");
-        CustomerRequest customer = new CustomerRequest();
+        CustomerCreateRequest customer = new CustomerCreateRequest();
         customer.setUserId(userId);
         customer.setFullName("Ignored Because Linked User Wins");
         customer.setNationalId(userRepository.findById(userId).orElseThrow().getNationalId());

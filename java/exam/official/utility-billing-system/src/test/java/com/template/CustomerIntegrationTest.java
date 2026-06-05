@@ -1,7 +1,7 @@
 package com.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.template.dto.CustomerRequest;
+import com.template.dto.CustomerCreateRequest;
 import com.template.dto.LoginRequest;
 import com.template.dto.RegisterRequest;
 import com.template.entity.CustomerStatus;
@@ -42,7 +42,7 @@ class CustomerIntegrationTest {
     @Test
     void createCustomer_asAdmin_returns201() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
 
         mockMvc.perform(post("/api/v1/customers")
                 .header("Authorization", "Bearer " + token)
@@ -58,14 +58,14 @@ class CustomerIntegrationTest {
     void createCustomer_withoutToken_returns401() throws Exception {
         mockMvc.perform(post("/api/v1/customers")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement())))))
+                .content(objectMapper.writeValueAsString(validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement())))))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void createCustomer_duplicateNationalId_returns409() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
 
         // Create once
         mockMvc.perform(post("/api/v1/customers")
@@ -85,7 +85,7 @@ class CustomerIntegrationTest {
     @Test
     void createCustomer_invalidName_withDigits_returns400() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
         req.setFullName("J0hn D0e123");
 
         mockMvc.perform(post("/api/v1/customers")
@@ -99,7 +99,7 @@ class CustomerIntegrationTest {
     @Test
     void createCustomer_invalidNationalId_withLetters_returns400() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
         req.setNationalId("119988ABCD123456");
 
         mockMvc.perform(post("/api/v1/customers")
@@ -113,7 +113,7 @@ class CustomerIntegrationTest {
     @Test
     void createCustomer_invalidPhone_returns400() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
         req.setPhoneNumber("0123456789");
 
         mockMvc.perform(post("/api/v1/customers")
@@ -129,7 +129,7 @@ class CustomerIntegrationTest {
     @Test
     void deactivateCustomer_thenStatusIsInactive() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
 
         String createBody = mockMvc.perform(post("/api/v1/customers")
                 .header("Authorization", "Bearer " + token)
@@ -138,7 +138,7 @@ class CustomerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        String id = objectMapper.readTree(createBody).get("id").asText();
+        String id = objectMapper.readTree(createBody).get("customerId").asText();
 
         mockMvc.perform(patch("/api/v1/customers/" + id + "/deactivate")
                 .header("Authorization", "Bearer " + token))
@@ -152,7 +152,7 @@ class CustomerIntegrationTest {
     @Test
     void activateCustomer_setsStatusActive() throws Exception {
         String token = loginAsAdmin();
-        CustomerRequest req = validCustomerRequest(String.valueOf(NID_SEQ.getAndIncrement()));
+        CustomerCreateRequest req = validCustomerCreateRequest(String.valueOf(NID_SEQ.getAndIncrement()));
 
         String createBody = mockMvc.perform(post("/api/v1/customers")
                 .header("Authorization", "Bearer " + token)
@@ -161,7 +161,7 @@ class CustomerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        String id = objectMapper.readTree(createBody).get("id").asText();
+        String id = objectMapper.readTree(createBody).get("customerId").asText();
 
         // Deactivate first
         mockMvc.perform(patch("/api/v1/customers/" + id + "/deactivate")
@@ -208,7 +208,7 @@ class CustomerIntegrationTest {
                 .andExpect(status().isCreated());
 
         String userId = userRepository.findByEmail(email).orElseThrow().getId().toString();
-        CustomerRequest customer = validCustomerRequest(nationalId);
+        CustomerCreateRequest customer = validCustomerCreateRequest(nationalId);
         customer.setUserId(java.util.UUID.fromString(userId));
 
         mockMvc.perform(post("/api/v1/customers")
@@ -233,8 +233,8 @@ class CustomerIntegrationTest {
                 .andExpect(jsonPath("$.nationalId").value(nationalId));
     }
 
-    private CustomerRequest validCustomerRequest(String nationalId) {
-        CustomerRequest req = new CustomerRequest();
+    private CustomerCreateRequest validCustomerCreateRequest(String nationalId) {
+        CustomerCreateRequest req = new CustomerCreateRequest();
         req.setFullName("Kagabo Jean");
         req.setNationalId(nationalId);
         req.setEmail("kagabo" + System.nanoTime() + "@example.com");

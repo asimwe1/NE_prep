@@ -10,9 +10,9 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class CustomerRequest {
+public class CustomerCreateRequest {
 
-    @Schema(description = "Optional existing ROLE_CUSTOMER user account ID to link to this customer profile")
+    @Schema(description = "Optional existing ROLE_CUSTOMER login account ID to link to this customer profile")
     private UUID userId;
 
     @NotBlank(message = "Full name is required")

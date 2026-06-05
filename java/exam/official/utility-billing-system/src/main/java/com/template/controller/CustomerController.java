@@ -1,9 +1,11 @@
 package com.template.controller;
 
-import com.template.dto.CustomerRequest;
+import com.template.dto.CustomerCreateRequest;
 import com.template.dto.CustomerResponse;
+import com.template.dto.CustomerUpdateRequest;
 import com.template.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -30,7 +32,7 @@ public class CustomerController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new customer", description = "Optionally pass userId to link an existing ROLE_CUSTOMER user account to the customer profile.")
+    @Operation(summary = "Create a new customer", description = "Optionally pass userId in the body to link an existing ROLE_CUSTOMER login account to the customer profile.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Customer created"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -38,13 +40,13 @@ public class CustomerController {
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "409", description = "National ID already registered")
     })
-    public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
+    public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerService.createCustomer(request));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{customerId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update customer details")
+    @Operation(summary = "Update customer details", description = "Identify the customer with customerId in the path. Do not send userId in the body; use create to link a login account.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer updated"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
@@ -53,9 +55,10 @@ public class CustomerController {
         @ApiResponse(responseCode = "409", description = "National ID already registered")
     })
     public ResponseEntity<CustomerResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody CustomerRequest request) {
-        return ResponseEntity.ok(customerService.updateCustomer(id, request));
+            @Parameter(description = "Customer profile ID, or linked ROLE_CUSTOMER user ID")
+            @PathVariable UUID customerId,
+            @Valid @RequestBody CustomerUpdateRequest request) {
+        return ResponseEntity.ok(customerService.updateCustomer(customerId, request));
     }
 
     @GetMapping
@@ -83,19 +86,21 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getByNationalId(nationalId));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
-    @Operation(summary = "Get customer by internal ID", description = "Backward-compatible lookup. Prefer /national-id/{nationalId} for user-facing operations.")
+    @Operation(summary = "Get customer by ID", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID. Prefer /national-id/{nationalId} for user-facing operations.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Customer found"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    public ResponseEntity<CustomerResponse> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(customerService.getById(id));
+    public ResponseEntity<CustomerResponse> getById(
+            @Parameter(description = "Customer profile ID, or linked ROLE_CUSTOMER user ID")
+            @PathVariable UUID customerId) {
+        return ResponseEntity.ok(customerService.getById(customerId));
     }
 
-    @PatchMapping("/{id}/activate")
+    @PatchMapping("/{customerId}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate a customer")
     @ApiResponses({
@@ -103,11 +108,13 @@ public class CustomerController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    public ResponseEntity<CustomerResponse> activate(@PathVariable UUID id) {
-        return ResponseEntity.ok(customerService.activate(id));
+    public ResponseEntity<CustomerResponse> activate(
+            @Parameter(description = "Customer profile ID, or linked ROLE_CUSTOMER user ID")
+            @PathVariable UUID customerId) {
+        return ResponseEntity.ok(customerService.activate(customerId));
     }
 
-    @PatchMapping("/{id}/deactivate")
+    @PatchMapping("/{customerId}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate a customer")
     @ApiResponses({
@@ -115,7 +122,9 @@ public class CustomerController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    public ResponseEntity<CustomerResponse> deactivate(@PathVariable UUID id) {
-        return ResponseEntity.ok(customerService.deactivate(id));
+    public ResponseEntity<CustomerResponse> deactivate(
+            @Parameter(description = "Customer profile ID, or linked ROLE_CUSTOMER user ID")
+            @PathVariable UUID customerId) {
+        return ResponseEntity.ok(customerService.deactivate(customerId));
     }
 }

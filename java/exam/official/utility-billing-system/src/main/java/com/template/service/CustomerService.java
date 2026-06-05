@@ -1,7 +1,8 @@
 package com.template.service;
 
-import com.template.dto.CustomerRequest;
+import com.template.dto.CustomerCreateRequest;
 import com.template.dto.CustomerResponse;
+import com.template.dto.CustomerUpdateRequest;
 import com.template.entity.Customer;
 import com.template.entity.CustomerStatus;
 import com.template.entity.Role;
@@ -34,7 +35,7 @@ public class CustomerService {
      * @throws DuplicateNationalIdException if the national ID is already registered
      */
     @Transactional
-    public CustomerResponse createCustomer(CustomerRequest request) {
+    public CustomerResponse createCustomer(CustomerCreateRequest request) {
         if (customerRepository.existsByNationalId(request.getNationalId())) {
             throw new DuplicateNationalIdException(request.getNationalId());
         }
@@ -58,25 +59,20 @@ public class CustomerService {
      * Updates an existing customer's details. The national ID can be changed only if
      * the new value is not already in use by another customer.
      *
-     * @param id      customer UUID
-     * @param request validated update payload
+     * @param customerId customer profile ID or linked user ID
+     * @param request    validated update payload
      * @return updated customer DTO
      * @throws ResourceNotFoundException    if no customer with the given ID exists
      * @throws DuplicateNationalIdException if the new national ID belongs to another customer
      */
     @Transactional
-    public CustomerResponse updateCustomer(UUID id, CustomerRequest request) {
-        Customer customer = findOrThrow(id);
+    public CustomerResponse updateCustomer(UUID customerId, CustomerUpdateRequest request) {
+        Customer customer = findOrThrow(customerId);
         if (!customer.getNationalId().equals(request.getNationalId())
                 && customerRepository.existsByNationalId(request.getNationalId())) {
             throw new DuplicateNationalIdException(request.getNationalId());
         }
         User linkedUser = customer.getUser();
-        if (request.getUserId() != null
-                && (linkedUser == null || !linkedUser.getId().equals(request.getUserId()))) {
-            linkedUser = resolveLinkedCustomerUser(request.getUserId());
-            customer.setUser(linkedUser);
-        }
         syncLinkedUserNationalId(linkedUser, request.getNationalId());
         customer.setFullName(valueOrUserFullName(request, linkedUser));
         customer.setNationalId(request.getNationalId().trim());
@@ -91,8 +87,8 @@ public class CustomerService {
         return customerRepository.findAll(pageable).map(this::toResponse);
     }
 
-    public CustomerResponse getById(UUID id) {
-        return toResponse(findOrThrow(id));
+    public CustomerResponse getById(UUID customerId) {
+        return toResponse(findOrThrow(customerId));
     }
 
     public CustomerResponse getByNationalId(String nationalId) {
@@ -100,15 +96,15 @@ public class CustomerService {
     }
 
     @Transactional
-    public CustomerResponse activate(UUID id) {
-        Customer customer = findOrThrow(id);
+    public CustomerResponse activate(UUID customerId) {
+        Customer customer = findOrThrow(customerId);
         customer.setStatus(CustomerStatus.ACTIVE);
         return toResponse(customerRepository.save(customer));
     }
 
     @Transactional
-    public CustomerResponse deactivate(UUID id) {
-        Customer customer = findOrThrow(id);
+    public CustomerResponse deactivate(UUID customerId) {
+        Customer customer = findOrThrow(customerId);
         customer.setStatus(CustomerStatus.INACTIVE);
         return toResponse(customerRepository.save(customer));
     }
@@ -120,14 +116,14 @@ public class CustomerService {
         }
     }
 
-    public Customer findOrThrow(UUID id) {
-        return customerRepository.findById(id)
-                .or(() -> customerRepository.findByUserId(id))
+    public Customer findOrThrow(UUID customerId) {
+        return customerRepository.findById(customerId)
+                .or(() -> customerRepository.findByUserId(customerId))
                 .orElseThrow(() -> {
-                    if (userRepository.existsById(id)) {
-                        return new ResourceNotFoundException("Customer profile for user", id);
+                    if (userRepository.existsById(customerId)) {
+                        return new ResourceNotFoundException("Customer profile for user", customerId);
                     }
-                    return new ResourceNotFoundException("Customer", id);
+                    return new ResourceNotFoundException("Customer", customerId);
                 });
     }
 
@@ -137,16 +133,16 @@ public class CustomerService {
     }
 
     @Transactional
-    public Customer findOrCreateForMeterAssignment(UUID id, String nationalId, String address, String district) {
+    public Customer findOrCreateForMeterAssignment(UUID customerId, String nationalId, String address, String district) {
         if (hasText(nationalId)) {
             return findOrCreateForMeterAssignmentByNationalId(nationalId, address, district);
         }
-        if (id == null) {
+        if (customerId == null) {
             throw new IllegalArgumentException("Provide customerNationalId to assign a meter. customerId is only an internal fallback.");
         }
-        return customerRepository.findById(id)
-                .or(() -> customerRepository.findByUserId(id))
-                .orElseGet(() -> createProfileForCustomerUser(id, nationalId, address, district));
+        return customerRepository.findById(customerId)
+                .or(() -> customerRepository.findByUserId(customerId))
+                .orElseGet(() -> createProfileForCustomerUser(customerId, nationalId, address, district));
     }
 
     @Transactional
@@ -158,7 +154,7 @@ public class CustomerService {
 
     private CustomerResponse toResponse(Customer c) {
         return CustomerResponse.builder()
-                .id(c.getId())
+                .customerId(c.getId())
                 .userId(c.getUser() == null ? null : c.getUser().getId())
                 .customerNumber(c.getCustomerNumber())
                 .fullName(c.getFullName())
@@ -248,15 +244,27 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    private String valueOrUserFullName(CustomerRequest request, User user) {
+    private String valueOrUserFullName(CustomerCreateRequest request, User user) {
         return user == null ? request.getFullName().trim() : user.getFullName().trim();
     }
 
-    private String valueOrUserEmail(CustomerRequest request, User user) {
+    private String valueOrUserEmail(CustomerCreateRequest request, User user) {
         return user == null ? request.getEmail().trim().toLowerCase() : user.getEmail().trim().toLowerCase();
     }
 
-    private String valueOrUserPhone(CustomerRequest request, User user) {
+    private String valueOrUserPhone(CustomerCreateRequest request, User user) {
+        return user == null ? request.getPhoneNumber().trim() : user.getPhoneNumber().trim();
+    }
+
+    private String valueOrUserFullName(CustomerUpdateRequest request, User user) {
+        return user == null ? request.getFullName().trim() : user.getFullName().trim();
+    }
+
+    private String valueOrUserEmail(CustomerUpdateRequest request, User user) {
+        return user == null ? request.getEmail().trim().toLowerCase() : user.getEmail().trim().toLowerCase();
+    }
+
+    private String valueOrUserPhone(CustomerUpdateRequest request, User user) {
         return user == null ? request.getPhoneNumber().trim() : user.getPhoneNumber().trim();
     }
 

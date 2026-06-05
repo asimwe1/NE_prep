@@ -192,7 +192,7 @@ class PaymentIntegrationTest {
     }
 
     private UUID createCustomer(String nationalId) throws Exception {
-        CustomerRequest req = new CustomerRequest();
+        CustomerCreateRequest req = new CustomerCreateRequest();
         req.setFullName("Uwimana Grace");
         req.setNationalId(nationalId);
         req.setEmail("grace" + System.nanoTime() + "@example.com");
@@ -206,7 +206,7 @@ class PaymentIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andReturn().getResponse().getContentAsString();
 
-        return UUID.fromString(objectMapper.readTree(body).get("id").asText());
+        return UUID.fromString(objectMapper.readTree(body).get("customerId").asText());
     }
 
     private UUID createMeter(String meterNumber, UUID customerId) throws Exception {

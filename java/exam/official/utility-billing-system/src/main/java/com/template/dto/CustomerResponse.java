@@ -1,6 +1,7 @@
 package com.template.dto;
 
 import com.template.entity.CustomerStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CustomerResponse {
 
-    private UUID id;
+    @Schema(description = "Customer profile ID")
+    private UUID customerId;
+
+    @Schema(description = "Linked ROLE_CUSTOMER login account ID, when present")
     private UUID userId;
     private String customerNumber;
     private String fullName;
