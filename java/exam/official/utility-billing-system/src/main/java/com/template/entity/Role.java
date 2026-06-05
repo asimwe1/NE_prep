@@ -1,7 +1,8 @@
 package com.template.entity;
 
 public enum Role {
-    USER,
-    ADMIN
-    // Add more roles as needed
+    ROLE_ADMIN,
+    ROLE_OPERATOR,
+    ROLE_FINANCE,
+    ROLE_CUSTOMER
 }

@@ -24,7 +24,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(
             summary = "Register a new user",
-            description = "Creates a disabled user account and sends an email verification link through SMTP. If EMAIL_DELIVERY=log, copy the verification actionUrl from the application logs."
+            description = "Creates an INACTIVE ROLE_CUSTOMER account with full names, email, phone number, and password, then sends an email verification link through SMTP. If EMAIL_DELIVERY=log, copy the verification actionUrl from the application logs."
     )
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
@@ -43,7 +43,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Login with email and password", description = "Authenticates a verified/enabled account and returns access and refresh tokens. Email matching is case-insensitive.")
+    @Operation(summary = "Login with email and password", description = "Authenticates an ACTIVE account and returns access and refresh tokens. Email matching is case-insensitive.")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }

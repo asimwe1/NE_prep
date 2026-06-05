@@ -1,6 +1,7 @@
 package com.template.dto;
 
 import com.template.entity.Role;
+import com.template.entity.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +17,9 @@ import java.util.UUID;
 public class UserResponse {
     private UUID id;
     private String email;
-    private String firstName;
-    private String lastName;
     private String fullName;
+    private String phoneNumber;
     private Role role;
-    private boolean enabled;
+    private UserStatus status;
     private LocalDateTime createdAt;
 }

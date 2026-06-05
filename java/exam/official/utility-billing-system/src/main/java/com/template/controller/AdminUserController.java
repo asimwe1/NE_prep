@@ -1,6 +1,8 @@
 package com.template.controller;
 
+import com.template.dto.UpdateUserRoleRequest;
 import com.template.dto.UserResponse;
+import com.template.entity.UserStatus;
 import com.template.entity.User;
 import com.template.exception.ResourceNotFoundException;
 import com.template.repository.UserRepository;
@@ -17,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")
@@ -57,7 +60,7 @@ public class AdminUserController {
     public ResponseEntity<UserResponse> enableUser(@PathVariable UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        user.setEnabled(true);
+        user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         return ResponseEntity.ok(authService.toUserResponse(user));
     }
@@ -67,7 +70,19 @@ public class AdminUserController {
     public ResponseEntity<UserResponse> disableUser(@PathVariable UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        user.setEnabled(false);
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
+        return ResponseEntity.ok(authService.toUserResponse(user));
+    }
+
+    @PatchMapping("/{id}/role")
+    @Operation(summary = "Update a user's role", description = "Admin-only endpoint for assigning ROLE_ADMIN, ROLE_OPERATOR, ROLE_FINANCE, or ROLE_CUSTOMER.")
+    public ResponseEntity<UserResponse> updateRole(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRoleRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        user.setRole(request.getRole());
         userRepository.save(user);
         return ResponseEntity.ok(authService.toUserResponse(user));
     }

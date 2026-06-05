@@ -4,6 +4,7 @@ import com.template.dto.*;
 import com.template.entity.RefreshToken;
 import com.template.entity.Role;
 import com.template.entity.User;
+import com.template.entity.UserStatus;
 import com.template.exception.*;
 import com.template.repository.UserRepository;
 import com.template.security.JwtService;
@@ -54,10 +55,10 @@ public class AuthService {
         User user = User.builder()
                 .email(request.getEmail().toLowerCase().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName().trim())
-                .lastName(request.getLastName().trim())
-                .role(Role.USER)
-                .enabled(false)   // must verify email first
+                .fullName(request.getFullName().trim())
+                .phoneNumber(request.getPhoneNumber().trim())
+                .role(Role.ROLE_CUSTOMER)
+                .status(UserStatus.INACTIVE)   // must verify email first
                 .verificationToken(verificationToken)
                 .verificationTokenExpiry(LocalDateTime.now().plusMinutes(verificationTokenExpiryMinutes))
                 .build();
@@ -80,7 +81,7 @@ public class AuthService {
             throw new InvalidTokenException("Verification token has expired. Please request a new one.");
         }
 
-        user.setEnabled(true);
+        user.setStatus(UserStatus.ACTIVE);
         user.setVerificationToken(null);
         user.setVerificationTokenExpiry(null);
         userRepository.save(user);
@@ -219,11 +220,10 @@ public class AuthService {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
                 .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
-                .enabled(user.isEnabled())
+                .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

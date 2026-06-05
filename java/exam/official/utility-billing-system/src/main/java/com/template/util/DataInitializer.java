@@ -2,6 +2,7 @@ package com.template.util;
 
 import com.template.entity.Role;
 import com.template.entity.User;
+import com.template.entity.UserStatus;
 import com.template.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +33,10 @@ public class DataInitializer implements CommandLineRunner {
             User admin = User.builder()
                     .email(ADMIN_EMAIL)
                     .password(passwordEncoder.encode(adminPassword))
-                    .firstName("Super")
-                    .lastName("Admin")
-                    .role(Role.ADMIN)
-                    .enabled(true)
+                    .fullName("Super Admin")
+                    .phoneNumber("+250780000000")
+                    .role(Role.ROLE_ADMIN)
+                    .status(UserStatus.ACTIVE)
                     .build();
             userRepository.save(admin);
             log.info("Default admin created for email: {}", ADMIN_EMAIL);

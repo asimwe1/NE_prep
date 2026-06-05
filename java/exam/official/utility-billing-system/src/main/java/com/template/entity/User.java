@@ -31,17 +31,18 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private String firstName;
+    private String fullName;
 
     @Column(nullable = false)
-    private String lastName;
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean enabled;
+    private UserStatus status;
 
     @Column(nullable = false)
     private boolean accountNonLocked;
@@ -61,7 +62,8 @@ public class User implements UserDetails {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (role == null) role = Role.USER;
+        if (role == null) role = Role.ROLE_CUSTOMER;
+        if (status == null) status = UserStatus.INACTIVE;
         accountNonLocked = true;
     }
 
@@ -71,14 +73,21 @@ public class User implements UserDetails {
     }
 
     public String getFullName() {
-        return firstName + " " + lastName;
+        return fullName;
+    }
+
+    public String getFirstName() {
+        if (fullName == null || fullName.isBlank()) {
+            return "";
+        }
+        return fullName.trim().split("\\s+")[0];
     }
 
     // --- UserDetails impl ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -94,6 +103,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return status == UserStatus.ACTIVE;
     }
 }
