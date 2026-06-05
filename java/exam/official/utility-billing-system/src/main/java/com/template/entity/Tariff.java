@@ -3,29 +3,27 @@ package com.template.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "utility_meters")
+@Table(name = "tariffs")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UtilityMeter {
+public class Tariff {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private String meterNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CompanyType company;
+    private String tariffCode;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,19 +33,34 @@ public class UtilityMeter {
     @Column(nullable = false)
     private BillingMode billingMode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
-
-    @Column(nullable = false)
-    private String installationAddress;
-
-    @Column(nullable = false)
-    private LocalDate installationDate;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MeterStatus status;
+    private TariffType tariffType;
+
+    @Column(nullable = false)
+    private Integer version;
+
+    /** Stored as "YYYY-MM" string for simplicity with YearMonth. */
+    @Column(nullable = false, length = 7)
+    private String effectiveStartCycle;
+
+    /** Null means open-ended tariff. */
+    @Column(length = 7)
+    private String effectiveEndCycle;
+
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal fixedServiceCharge;
+
+    /** VAT percentage (e.g. 18.00 means 18%). */
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal vatRate;
+
+    @Column(nullable = false)
+    private boolean active;
+
+    @OneToMany(mappedBy = "tariff", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<TariffTier> tiers = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,9 +71,7 @@ public class UtilityMeter {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (status == null) {
-            status = MeterStatus.ACTIVE;
-        }
+        active = true;
     }
 
     @PreUpdate

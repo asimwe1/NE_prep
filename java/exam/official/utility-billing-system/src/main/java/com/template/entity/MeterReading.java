@@ -31,13 +31,16 @@ public class MeterReading {
     @Column(name = "billing_month", nullable = false)
     private LocalDate billingMonth;
 
-    @Column(nullable = false, precision = 14, scale = 2)
+    @Column(nullable = false)
+    private LocalDate readingDate;
+
+    @Column(nullable = false, precision = 14, scale = 3)
     private BigDecimal previousReading;
 
-    @Column(nullable = false, precision = 14, scale = 2)
+    @Column(nullable = false, precision = 14, scale = 3)
     private BigDecimal currentReading;
 
-    @Column(nullable = false, precision = 14, scale = 2)
+    @Column(nullable = false, precision = 14, scale = 3)
     private BigDecimal consumption;
 
     @Column(nullable = false, updatable = false)

@@ -1,0 +1,305 @@
+// =====================================================================
+// Utility Billing System — Entity Relationship Diagram
+// Format: dbdiagram.io (DBML)
+// Generated: 2026-06-05
+// Tables: users, refresh_tokens, customers, utility_meters,
+//         meter_readings, tariffs, tariff_tiers, tax_configurations,
+//         penalty_configurations, bills, payments, customer_notifications
+// =====================================================================
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+Enum role_enum {
+  ROLE_ADMIN
+  ROLE_OPERATOR
+  ROLE_FINANCE
+  ROLE_CUSTOMER
+}
+
+Enum user_status_enum {
+  ACTIVE
+  INACTIVE
+}
+
+Enum customer_status_enum {
+  ACTIVE
+  INACTIVE
+}
+
+Enum meter_status_enum {
+  ACTIVE
+  INACTIVE
+}
+
+Enum company_type_enum {
+  WASAC
+  REG
+}
+
+Enum utility_type_enum {
+  WATER
+  ELECTRICITY
+}
+
+Enum billing_mode_enum {
+  PREPAID
+  POSTPAID
+}
+
+Enum tariff_type_enum {
+  FLAT
+  TIER_BASED
+}
+
+Enum bill_status_enum {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+Enum payment_status_enum {
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+Enum notification_type_enum {
+  BILL_GENERATED
+  PAYMENT_RECEIVED
+  ACCOUNT_ACTIVATED
+  GENERAL
+}
+
+Enum notification_status_enum {
+  PENDING
+  SENT
+  FAILED
+}
+
+// ─────────────────────────────────────────
+// TABLE: users
+// ─────────────────────────────────────────
+
+Table users {
+  id                        uuid        [pk, not null, note: "UUID primary key"]
+  email                     varchar(255) [not null, unique, note: "Login username; unique per user"]
+  password                  varchar(255) [not null]
+  full_name                 varchar(255) [not null]
+  phone_number              varchar(20)  [not null]
+  role                      role_enum    [not null, default: "ROLE_CUSTOMER"]
+  status                    user_status_enum [not null, default: "INACTIVE", note: "INACTIVE until email verified"]
+  account_non_locked        boolean      [not null, default: true]
+  verification_token        varchar(255)
+  verification_token_expiry timestamp
+  password_reset_token      varchar(255)
+  password_reset_token_expiry timestamp
+  created_at                timestamp    [not null]
+  updated_at                timestamp
+
+  Note: "Platform users: admins, operators, finance staff, and customer portal users"
+}
+
+// ─────────────────────────────────────────
+// TABLE: refresh_tokens
+// ─────────────────────────────────────────
+
+Table refresh_tokens {
+  id          uuid        [pk, not null]
+  token       varchar(512) [not null, unique, note: "Opaque refresh token value"]
+  user_id     uuid        [not null, ref: - users.id, note: "One active refresh token per user"]
+  expiry_date timestamp   [not null]
+
+  Note: "JWT refresh token store; one-to-one with users"
+}
+
+// ─────────────────────────────────────────
+// TABLE: customers
+// ─────────────────────────────────────────
+
+Table customers {
+  id              uuid        [pk, not null]
+  customer_number varchar(50) [not null, unique, note: "System-generated customer reference"]
+  full_name       varchar(100) [not null]
+  national_id     varchar(16)  [not null, unique, note: "16-digit Rwandan National ID"]
+  phone_number    varchar(20)  [not null]
+  email           varchar(255) [not null]
+  address         varchar(255) [not null]
+  district        varchar(100) [not null]
+  status          customer_status_enum [not null, default: "ACTIVE"]
+  created_at      timestamp   [not null]
+  updated_at      timestamp
+
+  Note: "Utility customers (WASAC water consumers / REG electricity consumers)"
+}
+
+// ─────────────────────────────────────────
+// TABLE: utility_meters
+// ─────────────────────────────────────────
+
+Table utility_meters {
+  id                   uuid        [pk, not null]
+  meter_number         varchar(30)  [not null, unique, note: "Physical meter serial; uppercase alphanumeric + hyphens"]
+  company              company_type_enum [not null, note: "WASAC or REG"]
+  utility_type         utility_type_enum [not null, note: "WATER or ELECTRICITY"]
+  billing_mode         billing_mode_enum [not null, note: "PREPAID or POSTPAID"]
+  customer_id          uuid         [not null, ref: > customers.id]
+  installation_address varchar(255) [not null]
+  installation_date    date         [not null, note: "Physical installation date (PastOrPresent)"]
+  status               meter_status_enum [not null, default: "ACTIVE"]
+  created_at           timestamp    [not null]
+  updated_at           timestamp
+
+  Note: "Physical utility meters belonging to a customer; one customer may have multiple meters"
+}
+
+// ─────────────────────────────────────────
+// TABLE: meter_readings
+// ─────────────────────────────────────────
+
+Table meter_readings {
+  id               uuid        [pk, not null]
+  meter_id         uuid        [not null, ref: > utility_meters.id]
+  billing_month    date        [not null, note: "First day of the billing month (YYYY-MM-01)"]
+  reading_date     date        [not null, note: "Actual physical reading date (PastOrPresent)"]
+  previous_reading decimal(14,3) [not null, note: "Meter value at start of period"]
+  current_reading  decimal(14,3) [not null, note: "Meter value at end of period; must be > previous_reading"]
+  consumption      decimal(14,3) [not null, note: "current_reading - previous_reading; calculated on insert"]
+  created_at       timestamp   [not null]
+
+  indexes {
+    (meter_id, billing_month) [unique, name: "uq_meter_reading_month", note: "One reading per meter per month"]
+  }
+
+  Note: "Monthly meter readings captured by ROLE_OPERATOR; active meters only"
+}
+
+// ─────────────────────────────────────────
+// TABLE: tariffs
+// ─────────────────────────────────────────
+
+Table tariffs {
+  id                    uuid        [pk, not null]
+  tariff_code           varchar(30)  [not null, unique, note: "Uppercase alphanumeric + _ + - (e.g. WATER-POST-V1)"]
+  utility_type          utility_type_enum [not null]
+  billing_mode          billing_mode_enum [not null]
+  tariff_type           tariff_type_enum  [not null, note: "FLAT or TIER_BASED"]
+  version               integer      [not null, note: "Monotonically increasing; min 1"]
+  effective_start_cycle varchar(7)   [not null, note: "YearMonth stored as 'YYYY-MM'; must not be past when creating"]
+  effective_end_cycle   varchar(7)   [note: "NULL means open-ended; set when superseded by new version"]
+  fixed_service_charge  decimal(12,2) [not null, note: "Fixed charge added to every bill regardless of consumption"]
+  vat_rate              decimal(5,2)  [not null, note: "VAT percentage (0–100); applied after consumption charge"]
+  active                boolean      [not null, default: true, note: "Only one active tariff per utility_type+billing_mode"]
+  created_at            timestamp    [not null]
+  updated_at            timestamp
+
+  Note: "Versioned tariff configuration. Old tariff is deactivated when new version is created"
+}
+
+// ─────────────────────────────────────────
+// TABLE: tariff_tiers
+// ─────────────────────────────────────────
+
+Table tariff_tiers {
+  id         uuid          [pk, not null]
+  tariff_id  uuid          [not null, ref: > tariffs.id]
+  tier_min   decimal(14,3) [not null, note: "Inclusive lower bound of consumption range (≥ 0)"]
+  tier_max   decimal(14,3) [not null, note: "Exclusive upper bound; must be > tier_min"]
+  unit_price decimal(10,2) [not null, note: "Price per unit consumed within this tier (≥ 0.01)"]
+
+  Note: "Individual tiers for TIER_BASED tariffs. Not used for FLAT tariffs"
+}
+
+// ─────────────────────────────────────────
+// TABLE: tax_configurations
+// ─────────────────────────────────────────
+
+Table tax_configurations {
+  id             uuid        [pk, not null]
+  name           varchar(100) [not null]
+  rate           decimal(5,2) [not null, note: "Tax rate percentage (0–100)"]
+  utility_type   utility_type_enum [not null]
+  effective_from varchar(7)  [not null, note: "YearMonth 'YYYY-MM'"]
+  active         boolean      [not null, default: true]
+  created_at     timestamp    [not null]
+  updated_at     timestamp
+
+  Note: "Supplementary tax rules (in addition to VAT in tariff)"
+}
+
+// ─────────────────────────────────────────
+// TABLE: penalty_configurations
+// ─────────────────────────────────────────
+
+Table penalty_configurations {
+  id                uuid        [pk, not null]
+  name              varchar(100) [not null]
+  rate              decimal(5,2) [not null, note: "Late payment penalty rate percentage (0–100)"]
+  grace_period_days integer      [not null, note: "Days after due date before penalty applies (0–365)"]
+  utility_type      utility_type_enum [not null]
+  active            boolean      [not null, default: true]
+  created_at        timestamp    [not null]
+  updated_at        timestamp
+
+  Note: "Late payment penalty rules applied when bill is overdue"
+}
+
+// ─────────────────────────────────────────
+// TABLE: bills
+// ─────────────────────────────────────────
+
+Table bills {
+  id            uuid          [pk, not null]
+  bill_number   varchar(50)   [not null, unique, note: "System-generated bill reference"]
+  customer_id   uuid          [not null, ref: > customers.id]
+  meter_id      uuid          [not null, ref: > utility_meters.id]
+  reading_id    uuid          [ref: > meter_readings.id, note: "Nullable — bill may be estimated"]
+  billing_month date          [not null, note: "First day of the billing month (YYYY-MM-01)"]
+  consumption   decimal(14,3) [not null]
+  unit_price    decimal(14,2) [not null, note: "Effective unit price at time of generation (snapshot)"]
+  amount        decimal(14,2) [not null, note: "Total bill amount including service charge, VAT, penalties"]
+  paid_amount   decimal(14,2) [not null, default: 0]
+  balance       decimal(14,2) [not null, note: "amount - paid_amount; updated after each payment"]
+  status        bill_status_enum [not null, default: "PENDING"]
+  due_date      date          [not null]
+  created_at    timestamp     [not null]
+  updated_at    timestamp
+
+  Note: "Generated bill. Trigger trg_bill_notification fires AFTER INSERT to create notification"
+}
+
+// ─────────────────────────────────────────
+// TABLE: payments
+// ─────────────────────────────────────────
+
+Table payments {
+  id                uuid          [pk, not null]
+  payment_reference varchar(100)  [not null, unique, note: "Uppercase alphanumeric + - (e.g. PAY-20240601-0001)"]
+  bill_id           uuid          [not null, ref: > bills.id]
+  amount            decimal(15,2) [not null, note: "Must be ≤ bill.balance at time of payment"]
+  payment_method    varchar(50)   [not null, note: "e.g. MOBILE_MONEY, BANK_TRANSFER, CASH"]
+  status            payment_status_enum [not null, default: "COMPLETED"]
+  paid_at           timestamp     [not null]
+
+  Note: "Payment records. Trigger trg_payment_bill_status fires AFTER INSERT to update bill balance and status"
+}
+
+// ─────────────────────────────────────────
+// TABLE: customer_notifications
+// ─────────────────────────────────────────
+
+Table customer_notifications {
+  id          uuid        [pk, not null]
+  customer_id uuid        [not null, ref: > customers.id]
+  type        notification_type_enum   [not null]
+  status      notification_status_enum [not null, default: "PENDING"]
+  recipient   varchar(255) [not null, note: "Email address or phone number of recipient"]
+  subject     varchar(255) [not null]
+  message     varchar(1000) [not null, note: "Required format: 'Dear <CustomerName>, Your <Month/Year> utility bill of <Amount> FRW has been successfully processed.'"]
+  created_at  timestamp   [not null]
+  sent_at     timestamp   [note: "Set when email/SMS is successfully dispatched"]
+
+  Note: "Notification log. Populated by both service layer and DB triggers (trg_bill_notification, trg_payment_bill_status)"
+}

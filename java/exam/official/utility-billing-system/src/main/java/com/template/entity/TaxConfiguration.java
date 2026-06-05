@@ -3,23 +3,18 @@ package com.template.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * EXAMPLE ENTITY 
- * Hospital: rename to Patient / Doctor / Appointment
- * Library:  rename to Book / Member / Loan
- * etc.
- */
 @Entity
-@Table(name = "items")
+@Table(name = "tax_configurations")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Item {
+public class TaxConfiguration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,14 +23,20 @@ public class Item {
     @Column(nullable = false)
     private String name;
 
-    private String description;
+    /** Tax rate as percentage (e.g. 18.00 = 18%). */
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal rate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UtilityType utilityType;
+
+    /** Stored as "YYYY-MM" string. */
+    @Column(nullable = false, length = 7)
+    private String effectiveFrom;
 
     @Column(nullable = false)
     private boolean active;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
-    private User createdBy;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

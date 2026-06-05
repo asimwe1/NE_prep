@@ -75,6 +75,46 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(DuplicateNationalIdException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateNationalId(DuplicateNationalIdException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateMeterNumberException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateMeterNumber(DuplicateMeterNumberException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(InactiveCustomerException.class)
+    public ResponseEntity<ErrorResponse> handleInactiveCustomer(InactiveCustomerException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InactiveMeterException.class)
+    public ResponseEntity<ErrorResponse> handleInactiveMeter(InactiveMeterException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateReadingException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateReading(DuplicateReadingException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidReadingException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidReading(InvalidReadingException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(TariffNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTariffNotFound(TariffNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(OverpaymentException.class)
+    public ResponseEntity<ErrorResponse> handleOverpayment(OverpaymentException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     // ─── Query & Pagination Errors ──────────────────────────────────────────
 
     @ExceptionHandler(PropertyReferenceException.class)

@@ -99,7 +99,7 @@ class AuthIntegrationTest {
 
     @Test
     void protectedEndpointWithoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/v1/items"))
+        mockMvc.perform(get("/api/v1/customers"))
                 .andExpect(status().isUnauthorized());
     }
 
