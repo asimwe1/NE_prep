@@ -1,9 +1,8 @@
 package com.template.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.template.validation.ValidName;
+import com.template.validation.ValidRwandanPhone;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
@@ -14,13 +13,19 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[0-9]).+$",
+            message = "Password must contain at least one uppercase letter and one digit"
+    )
     private String password;
 
-    @NotBlank(message = "Full names are required")
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+    @ValidName
     private String fullName;
 
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Phone number must contain 10 to 15 digits and may start with +")
+    @ValidRwandanPhone
     private String phoneNumber;
 }
