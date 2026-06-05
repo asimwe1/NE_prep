@@ -48,7 +48,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 ```
 
-In local dev, verification and password-reset links are written to the application logs by default. Use the `actionUrl` from the log to verify the account or reset the password.
+In local dev, verification links are written to the application logs by default. Password-reset responses also include an `actionUrl` field when `EMAIL_DELIVERY=log`.
 
 Default admin:
 

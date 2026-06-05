@@ -130,15 +130,23 @@ public class AuthService {
     @Transactional
     public MessageResponse forgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail().toLowerCase().trim();
-        userRepository.findByEmail(email).ifPresent(user -> {
-            String resetToken = UUID.randomUUID().toString();
-            user.setPasswordResetToken(resetToken);
-            user.setPasswordResetTokenExpiry(LocalDateTime.now().plusMinutes(passwordResetTokenExpiryMinutes));
-            userRepository.save(user);
-            emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetToken);
-        });
-        // Always return success to prevent email enumeration
-        return MessageResponse.of("If that email exists, a password reset link has been sent.");
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with email: " + email));
+
+        String resetToken = UUID.randomUUID().toString();
+        user.setPasswordResetToken(resetToken);
+        user.setPasswordResetTokenExpiry(LocalDateTime.now().plusMinutes(passwordResetTokenExpiryMinutes));
+        userRepository.save(user);
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetToken);
+
+        if (emailService.isLogMode()) {
+            return MessageResponse.withActionUrl(
+                    "Password reset link generated. Use actionUrl to reset the password.",
+                    emailService.buildPasswordResetUrl(resetToken)
+            );
+        }
+
+        return MessageResponse.of("Password reset email sent.");
     }
 
     //  Reset Password 

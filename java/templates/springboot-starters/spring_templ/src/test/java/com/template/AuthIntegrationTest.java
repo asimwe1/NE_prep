@@ -77,7 +77,19 @@ class AuthIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.actionUrl").exists());
+    }
+
+    @Test
+    void forgotPasswordWithUnknownEmail_returns404() throws Exception {
+        ForgotPasswordRequest req = new ForgotPasswordRequest();
+        req.setEmail("missing@example.com");
+
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isNotFound());
     }
 
     @Test

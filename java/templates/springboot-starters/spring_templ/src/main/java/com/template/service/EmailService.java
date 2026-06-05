@@ -45,7 +45,7 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String firstName, String token) {
-        String resetUrl = baseUrl + "/api/v1/auth/reset-password?token=" + token;
+        String resetUrl = buildPasswordResetUrl(token);
         Context ctx = new Context();
         ctx.setVariable("name", firstName);
         ctx.setVariable("resetUrl", resetUrl);
@@ -53,6 +53,14 @@ public class EmailService {
         ctx.setVariable("expiryMinutes", 60);
 
         sendHtmlEmail(toEmail, "Reset Your Password", "email/password-reset", ctx, resetUrl);
+    }
+
+    public String buildPasswordResetUrl(String token) {
+        return baseUrl + "/api/v1/auth/reset-password?token=" + token;
+    }
+
+    public boolean isLogMode() {
+        return "log".equalsIgnoreCase(deliveryMode);
     }
 
     @Async

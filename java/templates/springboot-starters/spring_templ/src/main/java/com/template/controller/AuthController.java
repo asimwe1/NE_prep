@@ -63,7 +63,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(
             summary = "Request password reset",
-            description = "Always returns 200 to prevent email enumeration. If the email exists, a reset token is generated. In local log mode, copy the reset actionUrl from the application logs."
+            description = "Generates a reset token for an existing account. In local log mode, the response includes actionUrl and the same URL is printed in the logs. Unknown emails return 404."
     )
     public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         return ResponseEntity.ok(authService.forgotPassword(request));
