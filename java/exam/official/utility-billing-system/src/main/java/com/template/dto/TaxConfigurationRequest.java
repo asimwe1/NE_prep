@@ -3,6 +3,7 @@ package com.template.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.template.entity.UtilityType;
 import com.template.validation.ValidName;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -27,5 +28,6 @@ public class TaxConfigurationRequest {
 
     @NotNull(message = "Effective from is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @Schema(type = "string", pattern = "^\\d{4}-\\d{2}$", example = "2026-06", description = "Month when this tax configuration takes effect, in yyyy-MM format")
     private YearMonth effectiveFrom;
 }

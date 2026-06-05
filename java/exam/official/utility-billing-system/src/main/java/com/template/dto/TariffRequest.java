@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.template.entity.BillingMode;
 import com.template.entity.TariffType;
 import com.template.entity.UtilityType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -35,9 +36,11 @@ public class TariffRequest {
 
     @NotNull(message = "Effective start cycle is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @Schema(type = "string", pattern = "^\\d{4}-\\d{2}$", example = "2026-06", description = "First billing cycle when this tariff becomes active, in yyyy-MM format")
     private YearMonth effectiveStartCycle;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @Schema(type = "string", pattern = "^\\d{4}-\\d{2}$", example = "2026-12", description = "Last billing cycle when this tariff remains active, in yyyy-MM format")
     private YearMonth effectiveEndCycle;
 
     @NotNull(message = "Fixed service charge is required")
