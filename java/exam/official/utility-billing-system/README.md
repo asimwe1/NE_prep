@@ -52,6 +52,75 @@ Default admin account is created at startup:
 - Email: `admin@example.com`
 - Password: value of `ADMIN_DEFAULT_PASSWORD` in `.env`
 
+## Docker Setup
+
+You can run the full app stack without installing Java, Maven, or PostgreSQL locally:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+- API: `http://localhost:8080`
+- Swagger: `http://localhost:8080/swagger-ui.html`
+- PostgreSQL: `localhost:5433`
+
+The Docker compose file treats host and container database URLs differently:
+
+- local host run can use `DB_URL=jdbc:postgresql://localhost:5432/...`
+- Docker app run uses `DOCKER_DB_URL=jdbc:postgresql://utility-billing-db:5432/...`
+
+That avoids the common failure where a container tries to connect to `localhost` instead of the database service.
+
+If you want to override values, create a `.env` file in the project root. Useful keys include:
+
+- `APP_PORT`
+- `DB_PORT`
+- `POSTGRES_DB`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DOCKER_DB_URL`
+- `JWT_SECRET`
+- `ADMIN_DEFAULT_PASSWORD`
+
+To stop the stack:
+
+```bash
+docker compose down
+```
+
+To stop it and also remove the PostgreSQL data volume:
+
+```bash
+docker compose down -v
+```
+
+## Docker Maven Environment
+
+If you want Maven available through Docker for builds, tests, or local development commands, use the `maven` service.
+
+Start only the database first:
+
+```bash
+docker compose up -d db
+```
+
+Run Maven commands inside the container:
+
+```bash
+docker compose run --rm --profile tools maven mvn clean test
+docker compose run --rm --profile tools maven mvn spring-boot:run
+docker compose run --rm --profile tools maven mvn package
+```
+
+Notes:
+
+- The project folder is mounted into the Maven container at `/workspace`
+- Maven dependencies are cached in a Docker volume, so later runs are faster
+- The Maven container connects to the same Postgres container using `db:5432`
+- If you run `mvn spring-boot:run` this way, the app uses the containerized Java and Maven toolchain instead of your host machine
+
 ## Exam Notes
 
 The project is ready for adding controllers/services for:

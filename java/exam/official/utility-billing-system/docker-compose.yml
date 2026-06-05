@@ -1,35 +1,101 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:15
-    container_name: utility-billing-db
+    hostname: utility-billing-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: utility_billing_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-utility_billing_db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - utility_billing_postgres_data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${POSTGRES_DB:-utility_billing_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      utility-billing-net:
+        aliases:
+          - db
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
     image: utility-billing-system-app
-    container_name: utility-billing-system-app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
-      - '8080:8080'
-    env_file:
-      - .env
+      - "${APP_PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://db:5432/utility_billing_db
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_URL: ${DOCKER_DB_URL:-jdbc:postgresql://utility-billing-db:5432/${POSTGRES_DB:-utility_billing_db}}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-local-docker-jwt-secret-change-me}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      EMAIL_DELIVERY: ${EMAIL_DELIVERY:-smtp}
+      MAIL_HEALTH_ENABLED: ${MAIL_HEALTH_ENABLED:-true}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+      MAIL_STARTTLS_REQUIRED: ${MAIL_STARTTLS_REQUIRED:-true}
+      MAIL_FROM: ${MAIL_FROM:-noreply@utility.local}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Utility Billing System}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-admin123}
     restart: unless-stopped
+    networks:
+      - utility-billing-net
+
+  maven:
+    image: maven:3.9.8-eclipse-temurin-21
+    profiles: ["tools"]
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/workspace
+      - utility_billing_maven_cache:/root/.m2
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_URL: ${DOCKER_DB_URL:-jdbc:postgresql://utility-billing-db:5432/${POSTGRES_DB:-utility_billing_db}}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-local-docker-jwt-secret-change-me}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      EMAIL_DELIVERY: ${EMAIL_DELIVERY:-smtp}
+      MAIL_HEALTH_ENABLED: ${MAIL_HEALTH_ENABLED:-true}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+      MAIL_STARTTLS_REQUIRED: ${MAIL_STARTTLS_REQUIRED:-true}
+      MAIL_FROM: ${MAIL_FROM:-noreply@utility.local}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Utility Billing System}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-admin123}
+    command: ["mvn", "-version"]
+    networks:
+      - utility-billing-net
 
 volumes:
   utility_billing_postgres_data:
+  utility_billing_maven_cache:
+
+networks:
+  utility-billing-net:
+    name: utility-billing-net
