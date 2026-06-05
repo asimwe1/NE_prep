@@ -425,3 +425,43 @@ Maintainer: asimwe001 / asimwe1
 - Added explicit and wrapped-cause handling for Spring Security `AccessDeniedException` so role failures return `403 Forbidden` instead of reaching the generic `500` handler.
 - Added a global Swagger customizer that documents `401 Unauthorized` and `403 Forbidden` on protected endpoints.
 - Kept public auth endpoints excluded from the global protected-endpoint Swagger responses.
+
+---
+
+### T8: Database Routines (PostgreSQL Triggers)
+
+- Created `src/main/resources/db/routines.sql` containing two PostgreSQL PLPGSQL functions and their trigger bindings:
+  - `fn_bill_notification` / `trg_bill_notification` — fires `AFTER INSERT ON bills`; inserts a `BILL_GENERATED` notification row into `customer_notifications` at the database level.
+  - `fn_payment_bill_status` / `trg_payment_bill_status` — fires `AFTER INSERT ON payments`; deducts the payment amount from `bills.balance`, sets `bills.paid_amount`, and sets `bills.status = 'PAID'` when balance reaches zero. Also inserts a `PAYMENT_RECEIVED` notification when the bill is fully paid.
+- Committed as `asimwe001`.
+
+---
+
+### T11: Integration Tests (7 new test classes)
+
+- Added `CustomerIntegrationTest` — create customer, duplicate NID rejection (409), inactive customer guard.
+- Added `MeterIntegrationTest` — assign meter, duplicate meter number rejection (409).
+- Added `MeterReadingIntegrationTest` — capture reading, invalid reading (current ≤ previous → 400), inactive meter rejection, duplicate reading rejection.
+- Added `TariffIntegrationTest` — create tariff, list tariffs, duplicate code rejection, past `effectiveStartCycle` rejection.
+- Added `BillIntegrationTest` — bill generation happy path (201), inactive customer rejection (400).
+- Added `PaymentIntegrationTest` — partial payment (status → `PARTIALLY_PAID`), full payment (status → `PAID`), overpayment rejection (400).
+- Added `NotificationIntegrationTest` — notification created on bill generation, list notifications as admin.
+
+**Bug fixes resolved during T11:**
+
+- `GlobalExceptionHandler`: added `@ExceptionHandler` for `IllegalArgumentException` and `IllegalStateException` returning `400 BAD_REQUEST` (previously fell to generic 500).
+- `GlobalExceptionHandler`: added `@ExceptionHandler` for `AccessDeniedException` returning `403 FORBIDDEN`.
+- `MeterReadingController` `POST /readings`: updated `@PreAuthorize` to `hasRole('ADMIN') or hasRole('OPERATOR')`.
+- `PaymentController` `POST /` and `GET /`: updated `@PreAuthorize` to `hasRole('ADMIN') or hasRole('FINANCE')`.
+- All test helpers use `AtomicLong`-based unique 16-digit national IDs and `System.nanoTime()`-based unique emails to prevent duplicate-key failures.
+
+**Final test result:** `Tests run: 59, Failures: 0, Errors: 0`  
+Committed as `asimwe001`.
+
+---
+
+### T12 & T13: Swagger @ApiResponse Annotations and Service Javadoc
+
+- All controller endpoints documented with `@ApiResponse` annotations specifying HTTP status codes and descriptions.
+- Javadoc added to all public service methods across all seven service classes.
+- Note: both tasks were completed by external commit `7f3bd5e Document utility billing codebase` pushed to HEAD during this session.
