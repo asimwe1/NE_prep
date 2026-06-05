@@ -4,6 +4,8 @@ import com.template.dto.MeterRequest;
 import com.template.dto.MeterResponse;
 import com.template.service.MeterService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,6 +32,13 @@ public class MeterController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Assign a new meter to a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Meter assigned"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found"),
+        @ApiResponse(responseCode = "409", description = "Meter number already exists")
+    })
     public ResponseEntity<MeterResponse> assign(@Valid @RequestBody MeterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(meterService.assignMeter(request));
     }
@@ -37,6 +46,13 @@ public class MeterController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update meter details")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Meter updated"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Meter or customer not found"),
+        @ApiResponse(responseCode = "409", description = "Meter number already exists")
+    })
     public ResponseEntity<MeterResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody MeterRequest request) {
@@ -46,6 +62,10 @@ public class MeterController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
     @Operation(summary = "List all meters (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of meters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<MeterResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -55,6 +75,11 @@ public class MeterController {
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR') or hasRole('CUSTOMER')")
     @Operation(summary = "List meters for a specific customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "List of meters for the customer"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
     public ResponseEntity<List<MeterResponse>> listByCustomer(@PathVariable UUID customerId) {
         return ResponseEntity.ok(meterService.listByCustomer(customerId));
     }
@@ -62,6 +87,11 @@ public class MeterController {
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate a meter")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Meter activated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Meter not found")
+    })
     public ResponseEntity<MeterResponse> activate(@PathVariable UUID id) {
         return ResponseEntity.ok(meterService.activate(id));
     }
@@ -69,6 +99,11 @@ public class MeterController {
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate a meter")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Meter deactivated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Meter not found")
+    })
     public ResponseEntity<MeterResponse> deactivate(@PathVariable UUID id) {
         return ResponseEntity.ok(meterService.deactivate(id));
     }

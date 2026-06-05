@@ -26,8 +26,8 @@ public class NotificationService {
     private final EmailService emailService;
 
     /**
-     * Creates a BILL_GENERATED notification and sends an email to the customer.
-     * Called after a bill is persisted.
+     * Persists the notification before sending email so the audit trail remains
+     * even when SMTP delivery fails.
      */
     @Transactional
     public void notifyBillGenerated(Bill bill) {
@@ -65,8 +65,7 @@ public class NotificationService {
     }
 
     /**
-     * Creates a PAYMENT_RECEIVED notification and sends an email when a bill is fully paid.
-     * Called after the bill status transitions to PAID.
+     * Sends the full-payment notification after PaymentService transitions the bill to PAID.
      */
     @Transactional
     public void notifyPaymentReceived(Bill bill) {

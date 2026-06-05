@@ -29,11 +29,8 @@ public class MeterReadingService {
     private final MeterService meterService;
 
     /**
-     * Captures a new meter reading after enforcing:
-     * 1. Meter must be ACTIVE.
-     * 2. No existing reading for the same meter + billing month.
-     * 3. currentReading must be strictly greater than the previous reading.
-     * 4. billingMonth must not be a future month.
+     * Captures one reading per meter per billing month.
+     * Previous reading is derived from the latest stored reading, which prevents manual tampering.
      */
     @Transactional
     public MeterReadingResponse captureReading(MeterReadingRequest request) {
@@ -91,8 +88,6 @@ public class MeterReadingService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("MeterReading", id));
     }
-
-    // ─── Internal helpers ────────────────────────────────────────────────────
 
     /** Package-accessible so BillService can look up readings by meter + month. */
     public MeterReading findByMeterAndBillingMonth(UtilityMeter meter, LocalDate billingMonth) {

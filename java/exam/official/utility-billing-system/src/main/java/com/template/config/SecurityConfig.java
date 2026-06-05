@@ -29,7 +29,7 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    // Public endpoints — no token required
+    // Keep only authentication and documentation endpoints public; role rules live on controllers.
     private static final String[] WHITE_LIST = {
             "/api/v1/auth/**",
             "/v3/api-docs/**",
@@ -51,6 +51,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(WHITE_LIST).permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                // Domain controllers use @PreAuthorize for role-specific exam rules.
                 .requestMatchers("/api/v1/customers/**").authenticated()
                 .requestMatchers("/api/v1/meters/**").authenticated()
                 .requestMatchers("/api/v1/readings/**").authenticated()

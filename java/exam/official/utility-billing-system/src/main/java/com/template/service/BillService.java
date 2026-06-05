@@ -33,14 +33,9 @@ public class BillService {
     private final NotificationService notificationService;
 
     /**
-     * Generates a bill for a meter in a given billing month.
-     *
-     * Steps:
-     * 1. Load meter and customer; assert customer is ACTIVE.
-     * 2. Load the meter reading for the billing month.
-     * 3. Resolve the active tariff.
-     * 4. Calculate amount (consumption-based + fixed service charge + VAT + optional penalty).
-     * 5. Persist and send notification.
+     * Generates one postpaid bill from an existing monthly reading.
+     * The order matters: validate customer/meter data first, resolve the tariff for that cycle,
+     * calculate immutable bill amounts, then notify after the bill exists.
      */
     @Transactional
     public BillResponse generateBill(BillGenerateRequest request) {
@@ -61,12 +56,11 @@ public class BillService {
 
         BigDecimal consumption = reading.getConsumption();
 
-        // Calculate consumption-based charge
         BigDecimal consumptionCharge;
         BigDecimal effectiveUnitPrice;
 
         if (tariff.getTariffType() == TariffType.FLAT) {
-            // For FLAT: use first tier's unit price × consumption
+            // Flat tariffs store their single unit price in the first tier.
             List<TariffTier> tiers = tariff.getTiers();
             if (tiers == null || tiers.isEmpty()) {
                 throw new IllegalStateException(
@@ -75,7 +69,6 @@ public class BillService {
             effectiveUnitPrice = tiers.get(0).getUnitPrice();
             consumptionCharge = consumption.multiply(effectiveUnitPrice);
         } else {
-            // TIER_BASED: apply tiered pricing slices
             List<TariffTier> tiers = tariff.getTiers().stream()
                     .sorted(Comparator.comparing(TariffTier::getTierMin))
                     .toList();
@@ -88,7 +81,6 @@ public class BillService {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal totalAmount = baseAmount.add(vatAmount);
 
-        // Apply penalty if the billing month end date + grace period has already passed
         totalAmount = applyPenaltyIfLate(totalAmount, meter.getUtilityType(), billingYearMonth);
 
         LocalDate dueDate = LocalDate.now().plusDays(30);
@@ -127,16 +119,14 @@ public class BillService {
                 .map(this::toResponse);
     }
 
-    // ─── Internal helpers ────────────────────────────────────────────────────
-
     public Bill findOrThrow(UUID id) {
         return billRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill", id));
     }
 
     /**
-     * Applies tiered pricing: for each tier, compute the charge on the consumption
-     * slice that falls within [tierMin, tierMax].
+     * Applies tiered pricing by charging each consumption slice against its tier.
+     * Any usage above the last configured tier keeps using the last tier's price.
      */
     private BigDecimal calculateTieredCharge(BigDecimal consumption, List<TariffTier> tiers) {
         BigDecimal total = BigDecimal.ZERO;
@@ -152,7 +142,6 @@ public class BillService {
             remaining = remaining.subtract(slice);
         }
 
-        // Any consumption beyond the last tier uses the last tier's unit price
         if (remaining.compareTo(BigDecimal.ZERO) > 0 && !tiers.isEmpty()) {
             TariffTier lastTier = tiers.get(tiers.size() - 1);
             total = total.add(remaining.multiply(lastTier.getUnitPrice()));
@@ -161,11 +150,13 @@ public class BillService {
         return total;
     }
 
+    /**
+     * Applies late-payment penalty only after the configured grace period has passed.
+     */
     private BigDecimal applyPenaltyIfLate(BigDecimal amount, UtilityType utilityType, YearMonth billingMonth) {
         return penaltyConfigurationRepository
                 .findTopByUtilityTypeAndActiveTrueOrderByCreatedAtDesc(utilityType)
                 .map(penalty -> {
-                    // Penalty applies if billingMonth end + gracePeriod < today
                     LocalDate graceCutoff = billingMonth.atEndOfMonth()
                             .plusDays(penalty.getGracePeriodDays());
                     if (graceCutoff.isBefore(LocalDate.now())) {

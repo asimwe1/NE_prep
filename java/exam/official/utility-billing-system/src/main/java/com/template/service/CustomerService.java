@@ -22,6 +22,13 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
+    /**
+     * Creates a new customer after validating uniqueness of the national ID.
+     *
+     * @param request validated customer creation payload
+     * @return the persisted customer as a response DTO
+     * @throws DuplicateNationalIdException if the national ID is already registered
+     */
     @Transactional
     public CustomerResponse createCustomer(CustomerRequest request) {
         if (customerRepository.existsByNationalId(request.getNationalId())) {
@@ -40,6 +47,16 @@ public class CustomerService {
         return toResponse(customerRepository.save(customer));
     }
 
+    /**
+     * Updates an existing customer's details. The national ID can be changed only if
+     * the new value is not already in use by another customer.
+     *
+     * @param id      customer UUID
+     * @param request validated update payload
+     * @return updated customer DTO
+     * @throws ResourceNotFoundException    if no customer with the given ID exists
+     * @throws DuplicateNationalIdException if the new national ID belongs to another customer
+     */
     @Transactional
     public CustomerResponse updateCustomer(UUID id, CustomerRequest request) {
         Customer customer = findOrThrow(id);
@@ -90,8 +107,6 @@ public class CustomerService {
             throw new InactiveCustomerException(customer.getCustomerNumber());
         }
     }
-
-    // ─── Internal helpers ────────────────────────────────────────────────────
 
     public Customer findOrThrow(UUID id) {
         return customerRepository.findById(id)

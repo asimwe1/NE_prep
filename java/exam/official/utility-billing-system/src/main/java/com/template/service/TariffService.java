@@ -25,8 +25,23 @@ public class TariffService {
     private final TaxConfigurationRepository taxConfigurationRepository;
     private final PenaltyConfigurationRepository penaltyConfigurationRepository;
 
-    // ─── Tariff ──────────────────────────────────────────────────────────────
-
+    /**
+     * Creates the next tariff version and deactivates the currently active tariff
+     * for the same utility type and billing mode. Existing bills keep their stored amounts.
+     */
+    /**
+     * Creates a new tariff version. Enforces the following rules:
+     * <ol>
+     *   <li>Tariff code must be unique.</li>
+     *   <li>Effective start cycle must be the current month or a future month.</li>
+     *   <li>Tier-based tariffs must include at least one tier, and each tier's max must exceed its min.</li>
+     *   <li>The existing active tariff for the same utility type + billing mode is automatically deactivated,
+     *       implementing an implicit versioning strategy.</li>
+     * </ol>
+     *
+     * @param request validated tariff creation payload
+     * @return the persisted tariff as a response DTO
+     */
     @Transactional
     public TariffResponse createTariff(TariffRequest request) {
         if (tariffRepository.existsByTariffCode(request.getTariffCode())) {
@@ -45,7 +60,6 @@ public class TariffService {
             throw new IllegalArgumentException("Tier-based tariffs must include at least one tier");
         }
 
-        // Cross-field tier validation: tierMax must be > tierMin
         if (request.getTiers() != null) {
             for (TariffTierRequest tier : request.getTiers()) {
                 if (tier.getTierMax().compareTo(tier.getTierMin()) <= 0) {
@@ -55,7 +69,6 @@ public class TariffService {
             }
         }
 
-        // Deactivate existing active tariffs for same utilityType + billingMode
         tariffRepository
                 .findTopByUtilityTypeAndBillingModeAndActiveTrueOrderByVersionDesc(
                         request.getUtilityType(), request.getBillingMode())
@@ -126,8 +139,6 @@ public class TariffService {
         return matches.get(0);
     }
 
-    // ─── Tax Configuration ───────────────────────────────────────────────────
-
     @Transactional
     public TaxConfigurationResponse createTaxConfig(TaxConfigurationRequest request) {
         TaxConfiguration config = TaxConfiguration.builder()
@@ -151,8 +162,6 @@ public class TariffService {
         return taxConfigurationRepository.findAll(pageable).map(this::toTaxResponse);
     }
 
-    // ─── Penalty Configuration ───────────────────────────────────────────────
-
     @Transactional
     public PenaltyConfigurationResponse createPenaltyConfig(PenaltyConfigurationRequest request) {
         PenaltyConfiguration config = PenaltyConfiguration.builder()
@@ -175,8 +184,6 @@ public class TariffService {
     public Page<PenaltyConfigurationResponse> listPenaltyConfigs(Pageable pageable) {
         return penaltyConfigurationRepository.findAll(pageable).map(this::toPenaltyResponse);
     }
-
-    // ─── Internal helpers ────────────────────────────────────────────────────
 
     public Tariff findOrThrow(UUID id) {
         return tariffRepository.findById(id)

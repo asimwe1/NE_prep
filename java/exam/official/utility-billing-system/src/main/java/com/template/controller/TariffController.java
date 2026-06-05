@@ -3,6 +3,8 @@ package com.template.controller;
 import com.template.dto.*;
 import com.template.service.TariffService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,11 +27,14 @@ public class TariffController {
 
     private final TariffService tariffService;
 
-    // ─── Tariff endpoints ────────────────────────────────────────────────────
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new tariff")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Tariff created"),
+        @ApiResponse(responseCode = "400", description = "Validation error or business rule violation"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<TariffResponse> createTariff(@Valid @RequestBody TariffRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(tariffService.createTariff(request));
     }
@@ -37,6 +42,10 @@ public class TariffController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "List all tariffs (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of tariffs"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<TariffResponse>> listTariffs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -46,6 +55,11 @@ public class TariffController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get tariff by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Tariff found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Tariff not found")
+    })
     public ResponseEntity<TariffResponse> getTariff(@PathVariable UUID id) {
         return ResponseEntity.ok(tariffService.getTariffById(id));
     }
@@ -53,15 +67,23 @@ public class TariffController {
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate a tariff")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Tariff deactivated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Tariff not found")
+    })
     public ResponseEntity<TariffResponse> deactivateTariff(@PathVariable UUID id) {
         return ResponseEntity.ok(tariffService.deactivateTariff(id));
     }
 
-    // ─── Tax configuration endpoints ─────────────────────────────────────────
-
     @PostMapping("/taxes")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a tax configuration")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Tax configuration created"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<TaxConfigurationResponse> createTaxConfig(
             @Valid @RequestBody TaxConfigurationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(tariffService.createTaxConfig(request));
@@ -83,11 +105,14 @@ public class TariffController {
         return ResponseEntity.ok(tariffService.deactivateTaxConfig(id));
     }
 
-    // ─── Penalty configuration endpoints ─────────────────────────────────────
-
     @PostMapping("/penalties")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a penalty configuration")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Penalty configuration created"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<PenaltyConfigurationResponse> createPenaltyConfig(
             @Valid @RequestBody PenaltyConfigurationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(tariffService.createPenaltyConfig(request));

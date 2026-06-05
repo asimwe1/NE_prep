@@ -4,6 +4,8 @@ import com.template.dto.PaymentRequest;
 import com.template.dto.PaymentResponse;
 import com.template.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,12 @@ public class PaymentController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "Record a payment against a bill")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Payment recorded"),
+        @ApiResponse(responseCode = "400", description = "Validation error, overpayment, or bill already paid"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Bill not found")
+    })
     public ResponseEntity<PaymentResponse> record(@Valid @RequestBody PaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.recordPayment(request));
     }
@@ -36,6 +44,10 @@ public class PaymentController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "List all payments (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of payments"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<PaymentResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -45,6 +57,11 @@ public class PaymentController {
     @GetMapping("/bill/{billId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "List payments for a specific bill (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of payments for the bill"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Bill not found")
+    })
     public ResponseEntity<Page<PaymentResponse>> getByBill(
             @PathVariable UUID billId,
             @RequestParam(defaultValue = "0") int page,

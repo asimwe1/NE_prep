@@ -4,6 +4,8 @@ import com.template.dto.CustomerRequest;
 import com.template.dto.CustomerResponse;
 import com.template.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,13 @@ public class CustomerController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Customer created"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "National ID already registered")
+    })
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerService.createCustomer(request));
     }
@@ -36,6 +45,13 @@ public class CustomerController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update customer details")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer updated"),
+        @ApiResponse(responseCode = "400", description = "Validation error"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found"),
+        @ApiResponse(responseCode = "409", description = "National ID already registered")
+    })
     public ResponseEntity<CustomerResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody CustomerRequest request) {
@@ -45,6 +61,10 @@ public class CustomerController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "List all customers (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of customers"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<CustomerResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -54,6 +74,11 @@ public class CustomerController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @Operation(summary = "Get customer by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
     public ResponseEntity<CustomerResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(customerService.getById(id));
     }
@@ -61,6 +86,11 @@ public class CustomerController {
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer activated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
     public ResponseEntity<CustomerResponse> activate(@PathVariable UUID id) {
         return ResponseEntity.ok(customerService.activate(id));
     }
@@ -68,6 +98,11 @@ public class CustomerController {
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate a customer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Customer deactivated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
     public ResponseEntity<CustomerResponse> deactivate(@PathVariable UUID id) {
         return ResponseEntity.ok(customerService.deactivate(id));
     }

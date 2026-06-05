@@ -5,6 +5,9 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validates the 16-digit National ID format required for customer registration.
+ */
 @Documented
 @Constraint(validatedBy = ValidNationalIdValidator.class)
 @Target({ElementType.FIELD, ElementType.PARAMETER})

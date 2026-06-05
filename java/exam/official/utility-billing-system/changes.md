@@ -385,3 +385,24 @@ Maintainer: asimwe001 / asimwe1
 | `14e92a9` | Add tariff, tax, and penalty configuration management |
 | `e13ff71` | T5: Add bill generation, notification service, and email templates |
 | `126d2c4` | T6: Add payment processing with overpayment guard and full-pay notification |
+
+---
+
+### Codebase Documentation Cleanup
+
+- Added concise comments only where business rules or implementation choices need context:
+  - JWT request authentication reloads user details so role/status changes apply immediately.
+  - JWT signing hashes the configured text secret so `.env` secrets do not need Base64 encoding.
+  - Security configuration keeps public endpoints limited and delegates exam role rules to controllers.
+  - Client-abort exceptions are treated as browser/client disconnects, not backend failures.
+  - Bill generation documents calculation order, tariff resolution, tiered pricing, and late penalties.
+  - Payment processing documents transaction boundaries and full-payment notification behavior.
+  - Meter reading capture documents previous-reading derivation and one-reading-per-cycle rules.
+  - Tariff creation documents versioning behavior and historical bill safety.
+  - Notification service documents audit-first persistence before SMTP delivery.
+- Cleaned decorative or corrupted comment separators from Java source files.
+- Rewrote `src/main/resources/db/routines.sql` comments in clean ASCII while preserving trigger behavior.
+- Added short Javadocs to reusable validation annotations:
+  - `@ValidName`
+  - `@ValidNationalId`
+  - `@ValidRwandanPhone`

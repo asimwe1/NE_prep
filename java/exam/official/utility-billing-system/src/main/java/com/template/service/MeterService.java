@@ -25,6 +25,15 @@ public class MeterService {
     private final UtilityMeterRepository meterRepository;
     private final CustomerService customerService;
 
+    /**
+     * Assigns a new utility meter to an existing customer.
+     * The meter number must be globally unique across all meter types.
+     *
+     * @param request validated meter assignment payload
+     * @return the persisted meter as a response DTO
+     * @throws DuplicateMeterNumberException if the meter number already exists
+     * @throws ResourceNotFoundException     if the referenced customer does not exist
+     */
     @Transactional
     public MeterResponse assignMeter(MeterRequest request) {
         if (meterRepository.existsByMeterNumber(request.getMeterNumber())) {
@@ -87,8 +96,6 @@ public class MeterService {
         meter.setStatus(MeterStatus.INACTIVE);
         return toResponse(meterRepository.save(meter));
     }
-
-    // ─── Internal helpers ────────────────────────────────────────────────────
 
     public UtilityMeter findOrThrow(UUID id) {
         return meterRepository.findById(id)

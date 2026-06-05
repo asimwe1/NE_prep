@@ -5,6 +5,9 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Accepts Rwandan mobile formats used by local customers: +2507..., 2507..., or 07....
+ */
 @Documented
 @Constraint(validatedBy = ValidRwandanPhoneValidator.class)
 @Target({ElementType.FIELD, ElementType.PARAMETER})

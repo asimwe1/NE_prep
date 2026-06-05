@@ -81,6 +81,7 @@ public class JwtService {
 
     private SecretKey getSignInKey() {
         try {
+            // Hash the configured text secret so local .env values do not need to be Base64 encoded.
             byte[] keyBytes = MessageDigest.getInstance("SHA-256")
                     .digest(secretKey.getBytes(StandardCharsets.UTF_8));
             return Keys.hmacShaKeyFor(keyBytes);

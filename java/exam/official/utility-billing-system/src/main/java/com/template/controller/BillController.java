@@ -4,6 +4,8 @@ import com.template.dto.BillGenerateRequest;
 import com.template.dto.BillResponse;
 import com.template.service.BillService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,12 @@ public class BillController {
     @PostMapping("/generate")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "Generate a utility bill for a meter and billing month")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Bill generated"),
+        @ApiResponse(responseCode = "400", description = "Validation error, inactive customer, or future billing month"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Meter, reading, or active tariff not found")
+    })
     public ResponseEntity<BillResponse> generate(@Valid @RequestBody BillGenerateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(billService.generateBill(request));
     }
@@ -36,6 +44,10 @@ public class BillController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE')")
     @Operation(summary = "List all bills (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of bills"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<BillResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -45,6 +57,11 @@ public class BillController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
     @Operation(summary = "Get bill by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Bill found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Bill not found")
+    })
     public ResponseEntity<BillResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(billService.getBillById(id));
     }
@@ -52,6 +69,11 @@ public class BillController {
     @GetMapping("/customer/{customerId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('FINANCE') or hasRole('CUSTOMER')")
     @Operation(summary = "List bills for a specific customer (paginated)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Paginated list of bills for the customer"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
     public ResponseEntity<Page<BillResponse>> getByCustomer(
             @PathVariable UUID customerId,
             @RequestParam(defaultValue = "0") int page,

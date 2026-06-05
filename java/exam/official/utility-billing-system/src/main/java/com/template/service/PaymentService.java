@@ -25,14 +25,8 @@ public class PaymentService {
     private final NotificationService notificationService;
 
     /**
-     * Records a payment against a bill.
-     *
-     * Rules enforced:
-     * 1. Bill must not already be PAID.
-     * 2. Payment reference must be unique.
-     * 3. Amount must not exceed the outstanding balance.
-     * 4. Updates bill paidAmount and balance; transitions status to PARTIALLY_PAID or PAID.
-     * 5. Sends notification when bill is fully paid.
+     * Records a partial or full payment and updates the bill in the same transaction.
+     * Full payment is the only point where the payment notification is emitted.
      */
     @Transactional
     public PaymentResponse recordPayment(PaymentRequest request) {
@@ -85,8 +79,6 @@ public class PaymentService {
         Bill bill = billService.findOrThrow(billId);
         return paymentRepository.findByBill(bill, pageable).map(this::toResponse);
     }
-
-    // ─── Internal helpers ────────────────────────────────────────────────────
 
     private PaymentResponse toResponse(Payment p) {
         Bill bill = p.getBill();

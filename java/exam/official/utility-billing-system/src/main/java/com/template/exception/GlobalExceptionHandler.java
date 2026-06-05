@@ -54,8 +54,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, "Account is locked. Contact support.");
     }
 
-    // ─── Domain Errors ────────────────────────────────────────────────────────
-
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -130,8 +128,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
-
-    // ─── Query & Pagination Errors ──────────────────────────────────────────
 
     @ExceptionHandler(PropertyReferenceException.class)
     public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException ex) {

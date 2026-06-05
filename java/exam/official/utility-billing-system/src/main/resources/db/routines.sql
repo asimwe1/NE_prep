@@ -1,24 +1,12 @@
--- =============================================================================
--- Utility Billing System — PostgreSQL Database Routines
--- =============================================================================
--- Apply manually via psql:
---   psql -U <user> -d utility_billing_db -f routines.sql
+-- Utility Billing System - PostgreSQL database routines
 --
--- These triggers run at the database level to satisfy the exam requirement for
--- at least one database-level routine (trigger / stored procedure / cursor).
--- The Spring service layer enforces the same logic for testability.
--- =============================================================================
+-- Apply manually with:
+--   psql -U <user> -d utility_billing_db -f src/main/resources/db/routines.sql
+--
+-- These triggers satisfy the exam requirement for database-level routines.
+-- The service layer keeps the same rules explicit and testable in Java.
 
-
--- -----------------------------------------------------------------------------
--- Trigger 1: trg_bill_notification
--- Fires AFTER INSERT on bills.
--- Inserts a BILL_GENERATED customer_notification row using the required message
--- format:
---   Dear <CustomerName>, Your <Month/Year> utility bill of <Amount> FRW has
---   been successfully processed.
--- -----------------------------------------------------------------------------
-
+-- Trigger 1: create a BILL_GENERATED notification whenever a bill is inserted.
 CREATE OR REPLACE FUNCTION fn_bill_notification()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -30,16 +18,13 @@ DECLARE
     v_subject            TEXT;
     v_recipient          TEXT;
 BEGIN
-    -- Fetch the customer's full name and email
     SELECT full_name, email
       INTO v_customer_full_name, v_recipient
       FROM customers
      WHERE id = NEW.customer_id;
 
-    -- Format billing month as YYYY-MM (matches Java YearMonth.toString())
     v_billing_month := TO_CHAR(NEW.billing_month, 'YYYY-MM');
 
-    -- Required exam notification message
     v_message := 'Dear ' || v_customer_full_name
               || ', Your ' || v_billing_month
               || ' utility bill of ' || NEW.amount
@@ -80,33 +65,20 @@ CREATE TRIGGER trg_bill_notification
     FOR EACH ROW
     EXECUTE FUNCTION fn_bill_notification();
 
-
--- -----------------------------------------------------------------------------
--- Trigger 2: trg_payment_bill_status
--- Fires AFTER INSERT on payments.
--- Recalculates the bill balance. When balance reaches zero:
---   1. Updates bills.status to 'PAID'.
---   2. Inserts a PAYMENT_RECEIVED customer_notification row.
--- For partial payments (balance > 0):
---   Updates bills.status to 'PARTIALLY_PAID'.
--- -----------------------------------------------------------------------------
-
+-- Trigger 2: update bill balance/status and notify when a payment fully settles a bill.
 CREATE OR REPLACE FUNCTION fn_payment_bill_status()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_bill               RECORD;
-    v_new_paid_amount    NUMERIC(14, 2);
-    v_new_balance        NUMERIC(14, 2);
-    v_new_status         TEXT;
-    v_customer_full_name TEXT;
-    v_recipient          TEXT;
-    v_billing_month      TEXT;
-    v_message            TEXT;
-    v_subject            TEXT;
+    v_bill            RECORD;
+    v_new_paid_amount NUMERIC(14, 2);
+    v_new_balance     NUMERIC(14, 2);
+    v_new_status      TEXT;
+    v_billing_month   TEXT;
+    v_message         TEXT;
+    v_subject         TEXT;
 BEGIN
-    -- Load current bill state
     SELECT b.*, c.full_name AS customer_full_name, c.email AS customer_email
       INTO v_bill
       FROM bills b
@@ -114,9 +86,9 @@ BEGIN
      WHERE b.id = NEW.bill_id;
 
     v_new_paid_amount := v_bill.paid_amount + NEW.amount;
-    v_new_balance     := v_bill.balance     - NEW.amount;
+    v_new_balance := v_bill.balance - NEW.amount;
 
-    -- Guard: clamp balance at zero (service layer prevents overpayment, but be safe)
+    -- Service code rejects overpayments; this clamp protects direct DB inserts.
     IF v_new_balance < 0 THEN
         v_new_balance := 0;
     END IF;
@@ -127,15 +99,13 @@ BEGIN
         v_new_status := 'PARTIALLY_PAID';
     END IF;
 
-    -- Update the bill
     UPDATE bills
        SET paid_amount = v_new_paid_amount,
-           balance     = v_new_balance,
-           status      = v_new_status,
-           updated_at  = NOW()
+           balance = v_new_balance,
+           status = v_new_status,
+           updated_at = NOW()
      WHERE id = NEW.bill_id;
 
-    -- On full payment, create a PAYMENT_RECEIVED notification
     IF v_new_status = 'PAID' THEN
         v_billing_month := TO_CHAR(v_bill.billing_month, 'YYYY-MM');
 
@@ -181,10 +151,7 @@ CREATE TRIGGER trg_payment_bill_status
     FOR EACH ROW
     EXECUTE FUNCTION fn_payment_bill_status();
 
-
--- =============================================================================
--- Verification queries (run after applying to confirm triggers are registered)
--- =============================================================================
+-- Verification query:
 -- SELECT trigger_name, event_manipulation, event_object_table, action_timing
 --   FROM information_schema.triggers
 --  WHERE trigger_schema = 'public'

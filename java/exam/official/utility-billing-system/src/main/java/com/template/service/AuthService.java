@@ -188,8 +188,6 @@ public class AuthService {
         return MessageResponse.of("Password changed successfully. Please log in again.");
     }
 
-    // ─── Resend Verification Email ────────────────────────────────────────────
-
     @Transactional
     public MessageResponse resendVerification(String email) {
         userRepository.findByEmail(email.toLowerCase().trim()).ifPresent(user -> {
@@ -203,8 +201,6 @@ public class AuthService {
         });
         return MessageResponse.of("If that email exists and is unverified, a new verification email has been sent.");
     }
-
-    // ─── Helper ───────────────────────────────────────────────────────────────
 
     private AuthResponse buildAuthResponse(String accessToken, String refreshToken, User user) {
         return AuthResponse.builder()

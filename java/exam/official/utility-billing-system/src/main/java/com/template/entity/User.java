@@ -83,7 +83,7 @@ public class User implements UserDetails {
         return fullName.trim().split("\\s+")[0];
     }
 
-    // --- UserDetails impl ---
+    // Role enum values already include the ROLE_ prefix expected by Spring Security.
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
