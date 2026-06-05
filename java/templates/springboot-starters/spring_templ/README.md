@@ -20,6 +20,14 @@ cd springboot-template
 
 ### Local dev
 
+Create a local `.env` file first:
+
+```bash
+cp .env.example .env
+```
+
+Fill in real values in `.env`. That file is ignored by Git and is loaded by Spring Boot through `spring.config.import`.
+
 ```bash
 ./mvnw spring-boot:run
 ```
@@ -34,7 +42,7 @@ Open:
 Default admin:
 
 - `admin@example.com`
-- configured by `app.admin.default-password`
+- password comes from `ADMIN_DEFAULT_PASSWORD` in `.env`
 
 ### Run production profile locally
 
@@ -42,7 +50,7 @@ Default admin:
 export SPRING_PROFILES_ACTIVE=prod
 export DB_URL=jdbc:postgresql://localhost:5432/yourdb
 export DB_USERNAME=postgres
-export DB_PASSWORD=yourpassword
+export DB_PASSWORD=your_database_password
 ./mvnw spring-boot:run
 ```
 
@@ -81,9 +89,12 @@ MAIL_PASSWORD=
 MAIL_FROM=noreply@yourapp.com
 MAIL_FROM_NAME=YourApp
 APP_BASE_URL=http://localhost:8080
+ADMIN_DEFAULT_PASSWORD=replace_with_a_local_admin_password
 ```
 
 `.env` is ignored by `.gitignore` and should remain local.
+
+For Gmail SMTP, create a Gmail app password, put it in `MAIL_PASSWORD` inside `.env`, and rotate it immediately if it is ever committed or shared.
 
 ## API docs
 

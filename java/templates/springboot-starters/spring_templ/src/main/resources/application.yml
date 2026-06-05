@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   profiles:
     active: dev
 
@@ -48,6 +51,8 @@ app:
   # Token expiry (minutes)
   verification-token-expiry: 1440   # 24 hours
   password-reset-token-expiry: 60   # 1 hour
+  admin:
+    default-password: ${ADMIN_DEFAULT_PASSWORD:change-me-before-running}
 
 # Swagger / OpenAPI
 springdoc:
