@@ -6,6 +6,7 @@ import com.template.exception.ResourceNotFoundException;
 import com.template.repository.UserRepository;
 import com.template.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Admin - Users", description = "User management (ADMIN only)")
+@Tag(name = "Admin - Users", description = "Admin-only user management with simple page/size pagination")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminUserController {
 
@@ -29,9 +30,14 @@ public class AdminUserController {
     private final AuthService authService;
 
     @GetMapping
-    @Operation(summary = "List all users (paginated)")
+    @Operation(
+            summary = "List all users",
+            description = "Returns users using simple pagination. Use only page and size; sort parameters are intentionally not exposed."
+    )
     public ResponseEntity<Page<UserResponse>> listUsers(
+            @Parameter(description = "Zero-based page number", example = "0")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Number of records per page", example = "20")
             @RequestParam(defaultValue = "20") int size) {
         Page<UserResponse> users = userRepository.findAll(PageRequest.of(Math.max(page, 0), Math.max(size, 1)))
                 .map(authService::toUserResponse);

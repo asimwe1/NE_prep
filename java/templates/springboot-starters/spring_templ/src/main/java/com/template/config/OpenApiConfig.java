@@ -12,13 +12,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "Spring Boot Security Template API",
+        title = "Spring Boot Starter Backend API",
         version = "1.0.0",
-        description = "Production-ready template with JWT auth, email verification, and CRUD.",
-        contact = @Contact(name = "Your Team", email = "team@yourapp.com")
+        description = """
+                Spring Boot starter backend with JWT authentication, PostgreSQL persistence, account verification,
+                password reset, admin user management, and a sample items CRUD resource.
+
+                Local development uses PostgreSQL by default:
+                DB_URL=jdbc:postgresql://localhost:5432/templatedb
+                DB_USERNAME=postgres
+                DB_PASSWORD=postgres
+
+                Secrets are loaded from a local .env file that must not be committed. In local mode,
+                verification and password-reset messages are written to the application logs by default.
+                Copy the actionUrl from the log to verify an account or reset a password.
+
+                List endpoints use simple pagination only: page and size. Sorting is intentionally not exposed
+                in Swagger to avoid invalid sort-field failures while keeping list-all requests simple.
+                """,
+        contact = @Contact(name = "Java NE Template", email = "noreply@yourapp.com")
     ),
     servers = {
-        @Server(url = "http://localhost:8080", description = "Development"),
+        @Server(url = "http://localhost:8080", description = "Local development"),
         @Server(url = "https://api.yourapp.com", description = "Production")
     }
 )
