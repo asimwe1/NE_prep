@@ -3,6 +3,8 @@ package com.template.dto;
 import com.template.entity.BillingMode;
 import com.template.entity.CompanyType;
 import com.template.entity.UtilityType;
+import com.template.validation.ValidName;
+import com.template.validation.ValidNationalId;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -30,6 +32,15 @@ public class MeterRequest {
     @NotNull(message = "Customer ID is required")
     @Schema(description = "Customer profile ID, or the linked ROLE_CUSTOMER user ID")
     private UUID customerId;
+
+    @Schema(description = "Required only when customerId is a ROLE_CUSTOMER user ID that does not yet have a customer profile")
+    @ValidNationalId
+    private String customerNationalId;
+
+    @Schema(description = "Required only when customerId is a ROLE_CUSTOMER user ID that does not yet have a customer profile")
+    @Size(min = 2, max = 100, message = "District must be between 2 and 100 characters")
+    @ValidName
+    private String customerDistrict;
 
     @NotNull(message = "Installation date is required")
     @PastOrPresent(message = "Installation date cannot be in the future")

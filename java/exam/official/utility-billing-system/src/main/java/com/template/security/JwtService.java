@@ -12,7 +12,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +37,11 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        if (userDetails instanceof User user) {
+            claims.put("tokenVersion", user.getTokenVersion());
+        }
+        return generateToken(claims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
@@ -68,13 +71,11 @@ public class JwtService {
     }
 
     private boolean isTokenInvalidated(String token, UserDetails userDetails) {
-        if (!(userDetails instanceof User user) || user.getAccessTokensInvalidatedAt() == null) {
+        if (!(userDetails instanceof User user)) {
             return false;
         }
-        Date issuedAt = extractIssuedAt(token);
-        return !issuedAt.toInstant().isAfter(
-                user.getAccessTokensInvalidatedAt().atZone(ZoneId.systemDefault()).toInstant()
-        );
+        Integer tokenVersion = extractTokenVersion(token);
+        return tokenVersion == null || tokenVersion != user.getTokenVersion();
     }
 
     private boolean isTokenExpired(String token) {
@@ -85,8 +86,8 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Date extractIssuedAt(String token) {
-        return extractClaim(token, Claims::getIssuedAt);
+    private Integer extractTokenVersion(String token) {
+        return extractClaim(token, claims -> claims.get("tokenVersion", Integer.class));
     }
 
     private Claims extractAllClaims(String token) {

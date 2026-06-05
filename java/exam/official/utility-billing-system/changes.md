@@ -483,5 +483,16 @@ Committed as `asimwe001`.
 ### Access Token Logout Invalidation
 
 - Added `accessTokensInvalidatedAt` to `User` so logout, password reset, and password change immediately invalidate existing JWT access tokens.
-- `JwtService` now rejects tokens issued at or before the user's invalidation timestamp.
+- Added `tokenVersion` to `User`; logout/password reset/password change increment it, and JWTs must carry the current version.
+- `JwtService` now rejects tokens whose embedded token version no longer matches the user record.
 - Added an integration test proving the same access token cannot call `/api/v1/auth/me` after logout.
+
+---
+
+### Meter Assignment by Customer User ID
+
+- Meter assignment can now accept a `ROLE_CUSTOMER` user ID even when no customer profile exists yet.
+- When auto-creating that profile, the meter request must include `customerNationalId` and `customerDistrict`; the installation address is used as the customer address.
+- `ROLE_OPERATOR` user IDs are rejected as meter owners with a clear `400` message because operators capture readings, while customer profiles own meters.
+- Unknown IDs are rejected as `404 Customer profile or user not found`.
+- Added integration tests for first-meter auto-profile creation, missing profile fields, unknown IDs, and operator-owner rejection.

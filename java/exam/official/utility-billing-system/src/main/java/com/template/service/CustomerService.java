@@ -131,6 +131,13 @@ public class CustomerService {
                 });
     }
 
+    @Transactional
+    public Customer findOrCreateForMeterAssignment(UUID id, String nationalId, String address, String district) {
+        return customerRepository.findById(id)
+                .or(() -> customerRepository.findByUserId(id))
+                .orElseGet(() -> createProfileForCustomerUser(id, nationalId, address, district));
+    }
+
     private CustomerResponse toResponse(Customer c) {
         return CustomerResponse.builder()
                 .id(c.getId())
@@ -170,6 +177,32 @@ public class CustomerService {
             throw new IllegalArgumentException("This user already has a customer profile.");
         }
         return user;
+    }
+
+    private Customer createProfileForCustomerUser(UUID userId, String nationalId, String address, String district) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer profile or user", userId));
+        if (user.getRole() != Role.ROLE_CUSTOMER) {
+            throw new IllegalArgumentException("Only ROLE_CUSTOMER users can own meters. ROLE_OPERATOR users capture readings; they do not own customer meters.");
+        }
+        if (nationalId == null || nationalId.isBlank() || district == null || district.isBlank()) {
+            throw new IllegalArgumentException("Customer profile is missing for this user. Provide customerNationalId and customerDistrict on meter assignment, or create the customer profile first.");
+        }
+        if (customerRepository.existsByNationalId(nationalId.trim())) {
+            throw new DuplicateNationalIdException(nationalId);
+        }
+        Customer customer = Customer.builder()
+                .user(user)
+                .customerNumber(generateCustomerNumber())
+                .fullName(user.getFullName().trim())
+                .nationalId(nationalId.trim())
+                .email(user.getEmail().trim().toLowerCase())
+                .phoneNumber(user.getPhoneNumber().trim())
+                .address(address.trim())
+                .district(district.trim())
+                .status(CustomerStatus.ACTIVE)
+                .build();
+        return customerRepository.save(customer);
     }
 
     private String valueOrUserFullName(CustomerRequest request, User user) {

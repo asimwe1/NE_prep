@@ -7,6 +7,8 @@ import com.template.dto.MeterRequest;
 import com.template.dto.RegisterRequest;
 import com.template.entity.BillingMode;
 import com.template.entity.CompanyType;
+import com.template.entity.Role;
+import com.template.entity.User;
 import com.template.entity.UtilityType;
 import com.template.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,6 +159,74 @@ class MeterIntegrationTest {
                 .andExpect(jsonPath("$[0].meterNumber").value("MTR-USERLINK-001"));
     }
 
+    @Test
+    void assignMeterWithCustomerUserIdWithoutProfile_createsProfileAndMeter() throws Exception {
+        UUID userId = registerCustomerUser("meter_auto_profile_" + System.nanoTime() + "@example.com");
+        MeterRequest req = validMeterRequest("MTR-AUTOPROFILE-001", userId);
+        req.setCustomerNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        req.setCustomerDistrict("Gasabo");
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.meterNumber").value("MTR-AUTOPROFILE-001"));
+
+        mockMvc.perform(get("/api/v1/customers/" + userId)
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.nationalId").value(req.getCustomerNationalId()));
+    }
+
+    @Test
+    void assignMeterWithOperatorUserId_returns400() throws Exception {
+        String email = "operator_meter_owner_" + System.nanoTime() + "@example.com";
+        UUID userId = registerCustomerUser(email);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setRole(Role.ROLE_OPERATOR);
+        userRepository.save(user);
+
+        MeterRequest req = validMeterRequest("MTR-OPERATOR-001", userId);
+        req.setCustomerNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        req.setCustomerDistrict("Gasabo");
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Only ROLE_CUSTOMER users can own meters. ROLE_OPERATOR users capture readings; they do not own customer meters."));
+    }
+
+    @Test
+    void assignMeterWithCustomerUserIdMissingProfileFields_returns400() throws Exception {
+        UUID userId = registerCustomerUser("meter_missing_profile_" + System.nanoTime() + "@example.com");
+        MeterRequest req = validMeterRequest("MTR-MISSINGPROFILE-001", userId);
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Customer profile is missing for this user. Provide customerNationalId and customerDistrict on meter assignment, or create the customer profile first."));
+    }
+
+    @Test
+    void assignMeterWithUnknownCustomerOrUserId_returns404() throws Exception {
+        MeterRequest req = validMeterRequest("MTR-UNKNOWN-001", UUID.randomUUID());
+        req.setCustomerNationalId(String.valueOf(NID_SEQ.getAndIncrement()));
+        req.setCustomerDistrict("Gasabo");
+
+        mockMvc.perform(post("/api/v1/meters")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.startsWith("Customer profile or user not found with id:")));
+    }
+
     // ─── Activate / Deactivate ────────────────────────────────────────────────
 
     @Test
@@ -210,19 +280,7 @@ class MeterIntegrationTest {
     }
 
     private UUID createLinkedCustomerUser() throws Exception {
-        String email = "meter_linked_customer_" + System.nanoTime() + "@example.com";
-        RegisterRequest register = new RegisterRequest();
-        register.setEmail(email);
-        register.setPassword("SecurePass1!");
-        register.setFullName("Meter Linked Customer");
-        register.setPhoneNumber("+250788000003");
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(register)))
-                .andExpect(status().isCreated());
-
-        UUID userId = userRepository.findByEmail(email).orElseThrow().getId();
+        UUID userId = registerCustomerUser("meter_linked_customer_" + System.nanoTime() + "@example.com");
         CustomerRequest customer = new CustomerRequest();
         customer.setUserId(userId);
         customer.setFullName("Ignored Because Linked User Wins");
@@ -240,6 +298,21 @@ class MeterIntegrationTest {
                 .andExpect(jsonPath("$.userId").value(userId.toString()));
 
         return userId;
+    }
+
+    private UUID registerCustomerUser(String email) throws Exception {
+        RegisterRequest register = new RegisterRequest();
+        register.setEmail(email);
+        register.setPassword("SecurePass1!");
+        register.setFullName("Meter Linked Customer");
+        register.setPhoneNumber("+250788000003");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isCreated());
+
+        return userRepository.findByEmail(email).orElseThrow().getId();
     }
 
     private String loginAsAdmin() throws Exception {

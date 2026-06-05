@@ -39,7 +39,12 @@ public class MeterService {
         if (meterRepository.existsByMeterNumber(request.getMeterNumber())) {
             throw new DuplicateMeterNumberException(request.getMeterNumber());
         }
-        Customer customer = customerService.findOrThrow(request.getCustomerId());
+        Customer customer = customerService.findOrCreateForMeterAssignment(
+                request.getCustomerId(),
+                request.getCustomerNationalId(),
+                request.getInstallationAddress(),
+                request.getCustomerDistrict()
+        );
         UtilityMeter meter = UtilityMeter.builder()
                 .meterNumber(request.getMeterNumber().trim())
                 .utilityType(request.getUtilityType())
@@ -60,7 +65,12 @@ public class MeterService {
                 && meterRepository.existsByMeterNumber(request.getMeterNumber())) {
             throw new DuplicateMeterNumberException(request.getMeterNumber());
         }
-        Customer customer = customerService.findOrThrow(request.getCustomerId());
+        Customer customer = customerService.findOrCreateForMeterAssignment(
+                request.getCustomerId(),
+                request.getCustomerNationalId(),
+                request.getInstallationAddress(),
+                request.getCustomerDistrict()
+        );
         meter.setMeterNumber(request.getMeterNumber().trim());
         meter.setUtilityType(request.getUtilityType());
         meter.setBillingMode(request.getBillingMode());

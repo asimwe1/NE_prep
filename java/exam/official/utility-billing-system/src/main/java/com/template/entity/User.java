@@ -55,6 +55,9 @@ public class User implements UserDetails {
 
     private LocalDateTime accessTokensInvalidatedAt;
 
+    @Column(nullable = false)
+    private int tokenVersion;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

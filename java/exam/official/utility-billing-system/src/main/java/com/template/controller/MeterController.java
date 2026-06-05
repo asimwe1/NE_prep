@@ -31,7 +31,7 @@ public class MeterController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Assign a new meter to a customer", description = "customerId accepts either the customer profile ID or the linked ROLE_CUSTOMER user ID.")
+    @Operation(summary = "Assign a new meter to a customer", description = "customerId accepts either the customer profile ID or a ROLE_CUSTOMER user ID. If the user has no customer profile yet, also provide customerNationalId and customerDistrict so the profile can be created and linked.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Meter assigned"),
         @ApiResponse(responseCode = "400", description = "Validation error"),
