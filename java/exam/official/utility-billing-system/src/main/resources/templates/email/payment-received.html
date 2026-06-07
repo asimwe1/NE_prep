@@ -17,6 +17,7 @@
     .label { color: #6b7280; font-size: 14px; }
     .value { font-weight: 600; color: #065f46; }
     .badge { background: #d1fae5; color: #065f46; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 16px; }
+    .badge-partial { background: #fef3c7; color: #92400e; }
     .footer { background: #f9fafb; padding: 20px 32px; text-align: center; color: #6b7280; font-size: 13px; }
   </style>
 </head>
@@ -24,12 +25,26 @@
   <div class="container">
     <div class="header">
       <h1>Payment Received</h1>
-      <p>Your account has been settled</p>
+      <p th:text="${fullyPaid} ? 'Your bill is fully settled' : 'Your payment has been applied to your bill'">
+        Your payment has been applied to your bill
+      </p>
     </div>
     <div class="body">
       <p>Dear <strong th:text="${customerName}">Customer</strong>,</p>
-      <span class="badge">PAID IN FULL</span>
-      <p>We have received your payment and your utility bill for <strong th:text="${billingMonth}">YYYY-MM</strong> is now fully settled. Thank you!</p>
+      <span class="badge" th:if="${fullyPaid}">PAID IN FULL</span>
+      <span class="badge badge-partial" th:unless="${fullyPaid}">PARTIAL PAYMENT</span>
+      <p th:if="${fullyPaid}">
+        We have received your payment of <strong th:text="${paymentAmount} + ' FRW'">0.00 FRW</strong>
+        for bill <strong th:text="${billNumber}">BILL-XXXXXXXX</strong>
+        (<strong th:text="${billingMonth}">YYYY-MM</strong>). Your remaining balance is
+        <strong>0 FRW</strong>. Thank you!
+      </p>
+      <p th:unless="${fullyPaid}">
+        We have received your payment of <strong th:text="${paymentAmount} + ' FRW'">0.00 FRW</strong>
+        for bill <strong th:text="${billNumber}">BILL-XXXXXXXX</strong>
+        (<strong th:text="${billingMonth}">YYYY-MM</strong>).
+        Your remaining balance is <strong th:text="${remainingBalance} + ' FRW'">0.00 FRW</strong>.
+      </p>
       <div class="info-box">
         <div class="info-row">
           <span class="label">Bill Number</span>
@@ -40,15 +55,32 @@
           <span class="value" th:text="${billingMonth}">YYYY-MM</span>
         </div>
         <div class="info-row">
-          <span class="label">Total Bill Amount</span>
-          <span class="value" th:text="${amount} + ' FRW'">0.00 FRW</span>
+          <span class="label">Payment Reference</span>
+          <span class="value" th:text="${paymentReference}">PAY-REF</span>
         </div>
         <div class="info-row">
-          <span class="label">Amount Paid</span>
+          <span class="label">Payment Method</span>
+          <span class="value" th:text="${paymentMethod}">Mobile Money</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Payment Amount</span>
+          <span class="value" th:text="${paymentAmount} + ' FRW'">0.00 FRW</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total Bill Amount</span>
+          <span class="value" th:text="${billAmount} + ' FRW'">0.00 FRW</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total Paid To Date</span>
           <span class="value" th:text="${paidAmount} + ' FRW'">0.00 FRW</span>
         </div>
+        <div class="info-row">
+          <span class="label">Remaining Balance</span>
+          <span class="value" th:text="${remainingBalance} + ' FRW'">0.00 FRW</span>
+        </div>
       </div>
-      <p>Your account is now up to date. If you have any questions, please contact our support team.</p>
+      <p th:if="${fullyPaid}">Your account is now up to date. If you have any questions, please contact our support team.</p>
+      <p th:unless="${fullyPaid}">Please settle the remaining balance before the due date. If you have any questions, please contact our support team.</p>
     </div>
     <div class="footer">
       <p>This is an automated notification. Please do not reply to this email.</p>

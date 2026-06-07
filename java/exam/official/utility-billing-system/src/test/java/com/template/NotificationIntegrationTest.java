@@ -2,10 +2,7 @@ package com.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.dto.*;
-import com.template.entity.BillingMode;
-import com.template.entity.CompanyType;
-import com.template.entity.TariffType;
-import com.template.entity.UtilityType;
+import com.template.entity.*;
 import com.template.repository.BillRepository;
 import com.template.repository.CustomerNotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,10 +98,11 @@ class NotificationIntegrationTest {
     }
 
     @Test
-    void partialPayment_doesNotCreatePaymentNotification() throws Exception {
+    void partialPayment_createsPaymentNotificationWithRemainingBalance() throws Exception {
         String billId = createBillForTest("1199880600000003", "MTR-NOTIF-C001", "NOTIF-TARIFF-C01");
         BigDecimal billBalance = getBillBalance(billId);
         BigDecimal partial = billBalance.divide(BigDecimal.valueOf(4), 2, java.math.RoundingMode.HALF_UP);
+        BigDecimal expectedBalance = billBalance.subtract(partial);
 
         long beforeCount = notificationRepository.count();
 
@@ -120,8 +118,16 @@ class NotificationIntegrationTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated());
 
-        // No PAYMENT_RECEIVED notification for partial payment
-        assertThat(notificationRepository.count()).isEqualTo(beforeCount);
+        assertThat(notificationRepository.count()).isEqualTo(beforeCount + 1);
+
+        CustomerNotification notification = notificationRepository.findAll().stream()
+                .filter(n -> n.getType() == NotificationType.PAYMENT_RECEIVED)
+                .max(java.util.Comparator.comparing(CustomerNotification::getCreatedAt))
+                .orElseThrow();
+
+        assertThat(notification.getMessage()).contains("Remaining balance:");
+        assertThat(notification.getMessage()).contains(expectedBalance.toPlainString());
+        assertThat(notification.getMessage()).contains(partial.toPlainString());
     }
 
     // ─── List notifications ───────────────────────────────────────────────────

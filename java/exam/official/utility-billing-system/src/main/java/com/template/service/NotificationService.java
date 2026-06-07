@@ -65,16 +65,25 @@ public class NotificationService {
     }
 
     /**
-     * Sends the full-payment notification after PaymentService transitions the bill to PAID.
+     * Sends a payment notification after each posted payment, including the linked bill
+     * and the customer's remaining balance.
      */
     @Transactional
-    public void notifyPaymentReceived(Bill bill) {
+    public void notifyPaymentReceived(Bill bill, Payment payment) {
         Customer customer = bill.getCustomer();
         String billingMonth = YearMonth.from(bill.getBillingMonth()).toString();
+        boolean fullyPaid = bill.getStatus() == BillStatus.PAID;
         String subject = "Payment Received – Bill " + bill.getBillNumber();
-        String message = String.format(
-                "Dear %s, Your payment for %s utility bill %s of %s FRW has been received. Your account is now fully settled.",
-                customer.getFullName(), billingMonth, bill.getBillNumber(), bill.getAmount());
+        String message = fullyPaid
+                ? String.format(
+                        "Dear %s, Your payment of %s FRW for bill %s (%s) has been received. "
+                                + "Remaining balance: 0 FRW. Your bill is fully settled.",
+                        customer.getFullName(), payment.getAmount(), bill.getBillNumber(), billingMonth)
+                : String.format(
+                        "Dear %s, Your payment of %s FRW for bill %s (%s) has been received. "
+                                + "Remaining balance: %s FRW.",
+                        customer.getFullName(), payment.getAmount(), bill.getBillNumber(), billingMonth,
+                        bill.getBalance());
 
         CustomerNotification notification = CustomerNotification.builder()
                 .customer(customer)
@@ -90,9 +99,14 @@ public class NotificationService {
             Context ctx = new Context();
             ctx.setVariable("customerName", customer.getFullName());
             ctx.setVariable("billingMonth", billingMonth);
-            ctx.setVariable("amount", bill.getAmount());
+            ctx.setVariable("billAmount", bill.getAmount());
             ctx.setVariable("billNumber", bill.getBillNumber());
+            ctx.setVariable("paymentAmount", payment.getAmount());
+            ctx.setVariable("paymentReference", payment.getPaymentReference());
+            ctx.setVariable("paymentMethod", payment.getPaymentMethod());
             ctx.setVariable("paidAmount", bill.getPaidAmount());
+            ctx.setVariable("remainingBalance", bill.getBalance());
+            ctx.setVariable("fullyPaid", fullyPaid);
             emailService.sendCustomEmail(customer.getEmail(), subject, "email/payment-received", ctx);
             saved.setStatus(NotificationStatus.SENT);
         } catch (Exception e) {

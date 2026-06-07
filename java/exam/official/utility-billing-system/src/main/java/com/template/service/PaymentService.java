@@ -25,8 +25,7 @@ public class PaymentService {
     private final NotificationService notificationService;
 
     /**
-     * Records a partial or full payment and updates the bill in the same transaction.
-     * Full payment is the only point where the payment notification is emitted.
+     * Records a partial or full payment, updates the bill, and notifies the customer by email.
      */
     @Transactional
     public PaymentResponse recordPayment(PaymentRequest request) {
@@ -63,10 +62,7 @@ public class PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
-
-        if (fullPaid) {
-            notificationService.notifyPaymentReceived(bill);
-        }
+        notificationService.notifyPaymentReceived(bill, savedPayment);
 
         return toResponse(savedPayment);
     }
