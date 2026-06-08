@@ -22,6 +22,7 @@ The app must be built with React Native and tested through the Expo CLI workflow
 - Support multiple meanings and long definitions.
 - Play pronunciation audio when available.
 - Add successful searches to drawer-based search history.
+- Save bookmarked words as lightweight offline previews.
 - Handle not-found, malformed response, and network errors gracefully.
 
 ## API Endpoint
@@ -155,13 +156,16 @@ LookUp-aligned definitions area:
 
 Placement rules:
 
-- Render **every** meaning group from the API, each in its own section.
+- Render concise preview results first; allow users to expand full live results only when more content exists.
+- Full live results can include every meaning group from the API, each in its own section.
 - Part-of-speech labels sit above their definitions as compact uppercase or semibold subheads (LookUp grammar grouping).
 - Each definition is its own inner card or inset row with a **numbered index** for scanability.
 - Example sentences appear **under** the definition they belong to, indented or quoted, with muted color — never the same weight as the definition text.
 - Maintain vertical rhythm: more space **between** POS sections than **within** a single definition block.
 - For words with multiple top-level entries (for example `run`), show a subtle `Entry 2` divider before the next entry stack.
 - Results must remain fully scrollable; never clip long definitions.
+- Do not show raw API entry labels such as `Entry 1` or `Entry 2` in the user interface.
+- For long words, default to the first two meaning groups and first two definitions per group, then show `Show all meanings` when hidden full-result data exists.
 
 Wide-screen adaptation (web / tablet, LookUp iPad pattern simplified):
 
@@ -170,15 +174,18 @@ Wide-screen adaptation (web / tablet, LookUp iPad pattern simplified):
 
 ### Drawer Navigation
 
-Required for search history. Maps to LookUp's sidebar / collections access pattern, simplified to recent searches only.
+Required for search history and saved words. Maps to LookUp's sidebar / collections access pattern, simplified to recent searches plus bookmarked saved words.
 
 LookUp-aligned drawer rules:
 
 - Slide in from the **left** (sidebar metaphor on iPhone; true sidebar region on wide layouts).
 - Header: title `Search history`, short subtitle, and a trailing **close** icon button.
-- Body: scrollable list of tappable word rows (grouped list style).
+- Body: scrollable list of saved words followed by recent searches.
+- Saved words show a bookmark marker, word, short meaning, and relative saved time.
+- Recent searches show word, one short meaning, and relative search time.
 - Footer: **Appearance** control (`Auto`, `Light`, `Dark`) pinned to the bottom with a top separator — settings-like placement LookUp uses for personalization, adapted for exam theme switching.
 - Duplicate history entries move to the top; tapping an item closes the drawer and refetches that word.
+- Saved-word taps open the saved preview immediately and then refresh live API data in the background.
 - Do not use a bottom sheet for history; LookUp reserves bottom presentation for pickers on small phones, not primary library navigation.
 
 ### Screen Chrome And Icon Placement
@@ -217,20 +224,42 @@ dictionary-mobile-app/
       _layout.tsx
       index.tsx
     components/
+      app-header.tsx
+      app-text.tsx
       definition-card.tsx
       drawer-history.tsx
       empty-state.tsx
       error-state.tsx
       meaning-section.tsx
-      pronunciation-button.tsx
+      pronunciation-controls.tsx
       search-box.tsx
+      search-section.tsx
+      theme-appearance-control.tsx
+      theme-picker-modal.tsx
+      theme-preference-provider.tsx
+      theme-toggle-button.tsx
+      word-entries-list.tsx
+      word-header-card.tsx
+      word-results.tsx
     services/
       dictionary-api.ts
     types/
       dictionary.ts
     utils/
+      app-theme.ts
+      decorative-icon-a11y.ts
       dictionary-format.ts
       history.ts
+      ios-design.ts
+      layout.ts
+      saved-words.ts
+      search-feedback.ts
+      theme-preference.ts
+      themed-styles.ts
+      touch-target.ts
+      use-layout.ts
+      use-pronunciation-playback.ts
+      use-theme-colors.ts
 ```
 
 Architecture rules:
@@ -239,7 +268,7 @@ Architecture rules:
 - API calls stay in `src/services`.
 - API response types stay in `src/types`.
 - Reusable UI stays in `src/components`.
-- Formatting and history helpers stay in `src/utils`.
+- Formatting, history, saved-word, theme, and layout helpers stay in `src/utils`.
 - Avoid hard-coded dictionary results.
 
 ## Data Flow Diagram
@@ -260,11 +289,16 @@ Dictionary API Service (axios)
   v
 GET /api/v2/entries/en/{word}
   |
-  +-- success --> Parse JSON --> Store temporary result state --> Render word details
+  +-- success --> Parse JSON --> Store live result state --> Render preview word details
   |
   +-- success --> Update search history --> Render drawer history
   |
   +-- not found/network/error --> Friendly error state
+  |
+  +-- saved word selected --> Render saved preview immediately --> Refresh live API data
+                       |                                      |
+                       |                                      +-- success --> Enable full expansion and audio
+                       +-- refresh fails/no internet ----------> Keep preview and disable audio
 ```
 
 ## State Model
@@ -276,7 +310,10 @@ The main app state should track:
 - `isLoading`: API request in progress.
 - `error`: friendly error message.
 - `hasSearched`: controls initial empty state.
-- `history`: successfully searched words.
+- `history`: successful search summaries with word, short definition, and timestamp.
+- `savedWords`: bookmarked preview entries persisted for offline reading.
+- `savedPreviewStatus`: `none`, `refreshing`, or `offline`.
+- `selectedPronunciationIndex`: selected pronunciation/accent chip.
 - `audioState`: pronunciation playback state, such as idle, loading, playing, paused, or failed.
 
 ## API Response Handling
@@ -302,23 +339,43 @@ Rules:
 
 - Check `phonetics[]` for available `audio` URLs.
 - If multiple audio URLs exist, default to the first valid clip but keep UI ready to switch accents.
+- Compact accent labels should be user-friendly: `US`, `US 1`, `US 2`, `UK`, `AU`, `CA`, or `ALT 1`.
 - Place play/pause/speaker controls in the **word header card**, adjacent to phonetic text — not in the navigation bar.
 - Use a speaker or play glyph that toggles to pause while audio is active.
 - Hide pronunciation controls completely when no audio exists.
+- Do not cache audio files locally.
+- Saved-word previews keep audio disabled until a live API refresh succeeds.
 - Track playback state: idle, loading, playing, paused, and error.
 - Never crash if audio loading fails.
 
 ## Search History Design
 
-Search history stores successfully searched words only.
+Search history stores lightweight successful-search summaries only.
 
 Rules:
 
 - Add a word after a successful API response.
+- Store word, one short meaning, and timestamp.
 - Normalize words for duplicate checks.
 - If a searched word already exists, move it to the top.
 - Drawer history item tap triggers a new API request.
 - Refresh the detail screen with the selected word.
+
+## Saved Words Design
+
+Saved words are separate from search history.
+
+Rules:
+
+- Bookmark control sits in the upper-right of the word hero card.
+- Bookmarking stores a lightweight preview of the main definitions in AsyncStorage.
+- Saved words persist after app reloads and phone restarts.
+- Drawer displays saved words above recent searches.
+- Saved-word tap opens the saved preview immediately.
+- After opening a saved word, the app sends a live API request in the background.
+- Full expansion and pronunciation are enabled only after the live request succeeds.
+- If live refresh fails, keep the saved preview and show an internet-required message when audio is attempted.
+- Audio files are not stored locally.
 
 ## Error Handling
 
@@ -374,10 +431,11 @@ Never display raw JSON or raw stack traces to users.
 ### UI Acceptance (LookUp Benchmark)
 
 - Search field and submit are the visual focus before any result exists.
-- Word header reads as a single hero card: word → phonetic → pronunciation.
+- Word header reads as a single hero card: word, bookmark, phonetic, pronunciation.
 - Definitions are numbered, grouped by part of speech, with examples visually subordinate.
+- Long results are concise by default and expose `Show all meanings` only when full live data has hidden content.
 - Toolbar icons (appearance, history) are trailing only; search icon is inside the field.
-- Drawer history slides from the left with appearance control in the footer.
+- Drawer slides from the left with saved words, recent searches, and appearance control in the footer.
 - Light and dark modes both preserve contrast and hierarchy.
 - `hello`, `run`, and invalid searches all look intentional — not like debug output.
 
@@ -391,6 +449,8 @@ Never display raw JSON or raw stack traces to users.
 - Whitespace input: trimmed before request.
 - Network/API failure: friendly error without crash.
 - History item tap: refetches and refreshes results.
+- Saved word tap: opens preview immediately, refreshes live data, then enables full result/audio if successful.
+- Word without audio: no pronunciation button is shown.
 
 ## Acceptance Criteria
 
@@ -400,6 +460,6 @@ The exam app is acceptable when:
 - API service is typed and uses axios.
 - Search, loading, error, and result rendering work against live API data.
 - UI follows the LookUp-aligned layout rules in this document (search placement, word header card, definition grouping, toolbar icon placement, left drawer history).
-- Drawer history, pronunciation audio, theme appearance, and friendly error handling behave as specified.
+- Drawer history, saved words, pronunciation audio, theme appearance, and friendly error handling behave as specified.
 - App runs on Android and iOS (and web when tested), with consistent brand styling across platforms.
 - `changes.md` records meaningful implementation phases by `asimwe001`.

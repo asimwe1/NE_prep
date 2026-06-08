@@ -7,9 +7,9 @@ Use this checklist with `design.md`.
 - [x] Create a React Native/Expo scaffold in `mobile/exam/official/dictionary-mobile-app/`.
 - [x] Keep local agent files ignored from Git.
 - [x] Add tracked planning docs for the exam.
-- [ ] Complete cross-platform compatibility checks.
+- [ ] Complete final manual cross-platform compatibility checks.
 - [x] Complete API integration.
-- [ ] Complete user-friendly experience polish.
+- [x] Complete user-friendly experience polish for the implemented exam scope.
 
 ## Activity 1: Word Search and API Integration
 
@@ -42,6 +42,8 @@ Use this checklist with `design.md`.
 - [x] Handle cases where multiple audio pronunciations are provided.
 - [x] Disable or hide the audio button if no pronunciation is provided.
 - [x] Manage audio playback state: play, pause, and stop.
+- [x] Label repeated accent audio clips compactly, such as `US 1`, `US 2`, and `UK`.
+- [x] Keep saved-preview pronunciation disabled until a live request succeeds.
 
 ## Activity 4: Drawer Navigation and Search History
 
@@ -49,10 +51,22 @@ Use this checklist with `design.md`.
 - [x] Create a search history data structure to store previously searched words.
 - [x] Add each successfully searched word to the history list.
 - [x] Display the list of searched words in the drawer menu.
+- [x] Display a short meaning and relative timestamp for each history item.
 - [x] Allow the user to tap a word from the drawer.
 - [x] Trigger a new API request when a history item is selected.
 - [x] Refresh the word details screen with the selected word data.
 - [x] Prevent duplicate entries; move repeated words to the top instead.
+
+## Saved Words and Offline Reading
+
+- [x] Add a bookmark control to the word hero card.
+- [x] Persist saved words with AsyncStorage.
+- [x] Save lightweight preview definitions separately from normal search history.
+- [x] Show saved words in the drawer as a separate section.
+- [x] Open saved previews immediately after app reloads or without internet.
+- [x] Refresh saved words with a live API request in the background when opened.
+- [x] Enable full result expansion and pronunciation only after live refresh succeeds.
+- [x] Show an internet-required message when saved-preview pronunciation is attempted without live data.
 
 ## Activity 5: Error Handling and User Feedback
 
@@ -73,11 +87,12 @@ Use this checklist with `design.md`.
 - [x] Validate input where applicable.
 - [x] Handle errors and validations with relevant user-facing messages.
 - [x] Use axios for all API interactions.
-- [ ] Test mobile application flows using the Expo CLI package.
+- [ ] Complete final manual Expo CLI testing on Android emulator and target platforms.
 
 ## Next Implementation Phase
 
 - [x] Replace temporary pronunciation URL opening with in-app audio playback.
 - [x] Add drawer navigation and search history.
-- [ ] Improve result rendering for synonyms, antonyms, and multiple audio sources.
-- [ ] Add final UX polish after feature completion.
+- [x] Improve result rendering for long responses and multiple audio sources.
+- [x] Add final UX polish after feature completion.
+- [ ] Optional: render synonyms, antonyms, or source URLs if exam time allows.

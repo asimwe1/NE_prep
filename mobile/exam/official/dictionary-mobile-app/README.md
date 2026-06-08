@@ -10,20 +10,21 @@ Read the full codebase guide before making larger changes:
 ../CODEBASE.md
 ```
 
-That file explains the architecture, state flow, API layer, audio logic, history drawer, styling rules, and change tracking expectations.
-
 ## Features
 
 - Expo Router and React Native TypeScript setup.
-- Uniwind styling copied from the existing Expo template.
-- Axios-based Dictionary API service with typed response models.
-- Search screen with empty, loading, error, and result states.
+- Axios-based Dictionary API service.
+- Search screen with empty, loading, not-found, network, and malformed-response states.
+- LookUp-inspired UI with a pinned search bar, word hero card, grouped definitions, and left drawer.
+- Concise default result previews with `Show all meanings` for long API responses.
 - Meaning sections grouped by part of speech.
-- Example sentence rendering.
-- In-app pronunciation playback with play, pause, and stop controls.
-- Accent-labeled pronunciation options such as `US` and `AU` when the API audio filename provides a hint.
-- Drawer-style search history.
-- Duplicate history handling that moves repeated words to the latest position.
+- Numbered definitions and inset example sentences.
+- Pronunciation playback with compact accent chips such as `US`, `US 1`, `US 2`, `UK`, and `AU`.
+- Audio controls are hidden when the API does not provide a non-empty audio URL.
+- Search history with word, short meaning, and relative timestamp.
+- Saved words with bookmark support and persisted offline preview definitions.
+- Saved-word live refresh: preview opens immediately, full API result and audio enable only after the request succeeds.
+- Styled light/dark/system appearance picker for web, iOS, and Android.
 
 ## API
 
@@ -33,13 +34,13 @@ https://api.dictionaryapi.dev/api/v2/entries/en/<word>
 
 ## Run
 
-Install dependencies first:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Start the app:
+Start Expo:
 
 ```bash
 npm run start
@@ -50,6 +51,7 @@ Run platform targets:
 ```bash
 npm run android
 npm run ios
+npm run web
 ```
 
 ## Checks
@@ -63,7 +65,7 @@ npm run lint
 
 ## Exam Notes
 
-The app source belongs in this directory:
+The app source belongs in:
 
 ```text
 mobile/exam/official/dictionary-mobile-app/

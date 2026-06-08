@@ -13,7 +13,7 @@ mobile/exam/official/
   dictionary-mobile-app/
 ```
 
-The actual React Native application is in:
+The React Native app lives in:
 
 ```text
 mobile/exam/official/dictionary-mobile-app/
@@ -24,55 +24,49 @@ Local model/agent instruction files such as `AGENTS.md`, `.agents/`, and `.claud
 ## Technology Stack
 
 - React Native with Expo.
-- Expo Router for app routing.
+- Expo Router for routing.
 - TypeScript for app source.
-- Uniwind/Tailwind-style `className` styling.
+- Uniwind/Tailwind-style `className` styling plus native fallback styles.
 - Axios for Dictionary API requests.
-- Expo Audio for in-app pronunciation playback.
+- Expo Audio for pronunciation playback.
+- AsyncStorage for persisted theme preference, search history, and saved words.
 - Lucide React Native for icons.
 
-## Main Runtime Flow
-
-```text
-User types word
-  -> SearchBox calls HomeScreen search handler
-  -> Input is trimmed and validated
-  -> dictionary-api service calls Dictionary API with axios
-  -> Response is validated as an array
-  -> HomeScreen stores entries in state
-  -> Successful word is added/promoted in history
-  -> Result header, pronunciation controls, and meaning sections render
-```
-
-If an error happens:
-
-```text
-API 404 -> word-not-found message
-No network/connection -> connectivity message
-Malformed response -> unreadable-data message
-Other API status -> generic service message
-```
-
 ## External API
-
-The app consumes:
 
 ```text
 GET https://api.dictionaryapi.dev/api/v2/entries/en/{word}
 ```
 
-The request is built in:
+The API boundary is [dictionary-api.ts](dictionary-mobile-app/src/services/dictionary-api.ts).
+
+Service behavior:
+
+- Uses axios, as required by the exam.
+- Trims and encodes searched words before request construction.
+- Validates that responses are arrays before returning them to UI code.
+- Throws typed errors for API status failures, network failures, and malformed data.
+
+## Runtime Flow
 
 ```text
-src/services/dictionary-api.ts
+User submits word
+  -> HomeScreen validates input
+  -> searchWord() requests live Dictionary API data
+  -> success: entries render, history summary is stored
+  -> network failure: saved-word fallback is used only when the word was bookmarked
+  -> other failure: friendly feedback card renders
 ```
 
-Important service behavior:
+For saved words:
 
-- Uses axios, as required by the exam instructions.
-- Encodes the searched word with `encodeURIComponent`.
-- Throws typed errors for API status errors, network errors, and malformed responses.
-- Returns typed `DictionaryEntry[]` data to the UI.
+```text
+User taps saved word in drawer
+  -> saved preview entries render immediately from AsyncStorage
+  -> live API refresh starts in the background
+  -> success: full live result replaces preview, audio and show-all are enabled
+  -> failure: saved preview remains, audio asks the user to connect to internet
+```
 
 ## Source Structure
 
@@ -82,223 +76,142 @@ src/
     _layout.tsx
     index.tsx
   components/
+    app-header.tsx
+    app-text.tsx
     definition-card.tsx
     drawer-history.tsx
     empty-state.tsx
     error-state.tsx
     meaning-section.tsx
-    pronunciation-button.tsx
+    pronunciation-controls.tsx
     search-box.tsx
+    search-section.tsx
+    theme-appearance-control.tsx
+    theme-picker-modal.tsx
+    theme-preference-provider.tsx
+    theme-toggle-button.tsx
+    word-entries-list.tsx
+    word-header-card.tsx
+    word-results.tsx
   services/
     dictionary-api.ts
   types/
     dictionary.ts
   utils/
+    app-theme.ts
+    decorative-icon-a11y.ts
     dictionary-format.ts
     history.ts
-  global.css
-  lucide-react-native.js
-  lucide-react.js
-  sf.css
+    ios-design.ts
+    layout.ts
+    saved-words.ts
+    search-feedback.ts
+    theme-preference.ts
+    themed-styles.ts
+    touch-target.ts
+    use-layout.ts
+    use-pronunciation-playback.ts
+    use-theme-colors.ts
 ```
 
-## App Route Files
+## Main Screen
 
-### `src/app/_layout.tsx`
+[index.tsx](dictionary-mobile-app/src/app/index.tsx) owns the main state:
 
-Sets up the app shell:
-
-- Imports global Uniwind styles.
-- Applies React Navigation light/dark theme.
-- Registers safe-area insets with Uniwind.
-- Defines the single `index` route title.
-- Adds the Expo status bar.
-
-This file should stay focused on app-level providers and navigation setup.
-
-### `src/app/index.tsx`
-
-This is the main app screen and current state owner.
-
-It manages:
-
-- Search input value.
-- Dictionary result entries.
-- Loading state.
-- Error state.
-- Whether the user has searched.
+- Search query.
+- Live or preview dictionary entries.
+- Loading and feedback state.
 - Selected pronunciation accent index.
-- Search history drawer state.
+- Recent search history.
+- Saved words.
+- Saved preview refresh status.
+- Drawer visibility.
 
-It coordinates:
+It coordinates API calls, offline saved-word fallback, history updates, saved-word updates, and result rendering.
 
-- Search validation.
-- API calls through `searchWord`.
-- History updates through `updateSearchHistory`.
-- Error message selection.
-- Rendering the search input, drawer, result header, audio controls, and meaning sections.
+## Rendering Components
 
-The selected pronunciation index lives here because the word header phonetic must change when a different accent is selected.
+- `SearchSection` and `SearchBox`: pinned search UI under the header.
+- `WordResults`: switches between phone stack and wide two-column layout.
+- `WordHeaderCard`: hero word card with word, phonetic, bookmark button, and pronunciation controls.
+- `WordEntriesList`: shows a concise result preview by default and expands with `Show all meanings`.
+- `MeaningSection`: groups definitions by part of speech.
+- `DefinitionCard`: renders numbered definitions and optional inset examples.
+- `DrawerHistory`: left drawer with saved words, recent search history, and appearance controls.
+- `ThemePickerModal`: styled cross-platform appearance picker for auto/light/dark.
 
-## Components
+## Result Preview Rules
 
-### `search-box.tsx`
+Long API responses are intentionally collapsed:
 
-Controlled search input and submit button.
+- Default result view shows the first two meaning groups.
+- Each previewed group shows the first two definitions.
+- `Show all meanings` appears only when full live data has hidden definitions/groups.
+- Saved-word previews are lightweight and do not enable full expansion until live refresh succeeds.
+- User-facing `Entry 1`, `Entry 2` labels are not shown.
 
-Responsibilities:
+## Audio Behavior
 
-- Display search text input.
-- Trigger search on keyboard submit or button press.
-- Disable input/button while loading.
-- Keep search UI separate from API logic.
+Pronunciation audio is optional.
 
-### `drawer-history.tsx`
+- `dictionary-format.ts` extracts non-empty `phonetics[].audio` URLs only.
+- If no audio URL exists, the speaker/play UI is hidden entirely.
+- Multiple audio URLs are deduplicated and labeled compactly, such as `US`, `US 1`, `US 2`, `UK`, `AU`, or `ALT 1`.
+- Longer distinctions such as stressed/unstressed are kept in accessibility labels.
+- Playback is handled by `use-pronunciation-playback.ts` through Expo Audio.
+- Audio plays once; users tap again to replay.
+- Saved words do not store audio locally. Audio is disabled while a saved preview waits for live data or if the live refresh fails.
 
-Drawer-style history panel implemented with a React Native `Modal`.
+## Persistence
 
-Responsibilities:
+AsyncStorage is used for:
 
-- Show successful search history.
-- Show an empty history state.
-- Allow selecting a previous word.
-- Close when tapping the overlay or close button.
+- Theme preference: `theme-preference.ts`.
+- Recent search history: `history.ts`.
+- Saved words: `saved-words.ts`.
 
-This was implemented without adding a navigation drawer dependency to keep the exam app small and fast.
+Recent search history:
 
-### `pronunciation-button.tsx`
+- Stores word, one short meaning summary, and timestamp.
+- Tapping a history row re-runs the API request.
+- Duplicate words move to the top.
 
-In-app pronunciation player.
+Saved words:
 
-Responsibilities:
-
-- Receive available pronunciation audio options.
-- Display accent chips such as `US` or `AU`.
-- Play selected audio once.
-- Pause playback.
-- Stop playback and reset to the beginning.
-- Show loading/failure feedback.
-- Hide interactive audio controls when no audio exists.
-
-The component does not own the selected accent index by itself. Selection is lifted to `index.tsx` so the displayed phonetic text can match the selected accent.
-
-### `meaning-section.tsx`
-
-Groups definitions by part of speech.
-
-Responsibilities:
-
-- Render a part-of-speech label.
-- Render all definition cards under that meaning group.
-
-### `definition-card.tsx`
-
-Displays one definition and its optional example.
-
-Responsibilities:
-
-- Number definitions.
-- Render selectable definition text.
-- Render example text when provided by the API.
-
-### `empty-state.tsx` and `error-state.tsx`
-
-Simple user feedback components.
-
-Responsibilities:
-
-- Explain what to do before searching.
-- Explain failures without showing raw API data or stack traces.
-
-## Services
-
-### `dictionary-api.ts`
-
-API boundary for the app.
-
-Exports:
-
-- `searchWord(word)`
-- `DictionaryApiError`
-- `DictionaryNetworkError`
-- `DictionaryMalformedResponseError`
-
-Why this exists:
-
-- Keeps HTTP details out of UI components.
-- Gives UI code simple typed errors to map into user-facing messages.
-- Makes the axios requirement explicit and easy to audit.
-
-## Types
-
-### `dictionary.ts`
-
-Defines Dictionary API response types:
-
-- `DictionaryEntry`
-- `DictionaryPhonetic`
-- `DictionaryMeaning`
-- `DictionaryDefinition`
-- `DictionaryLicense`
-
-The API has many optional fields. Types reflect that so UI code checks for missing data safely.
-
-## Utilities
-
-### `dictionary-format.ts`
-
-Formatting and extraction helpers.
-
-Key helpers:
-
-- `getDisplayPhonetic(entry)`: chooses a visible phonetic string.
-- `findPronunciationAudios(entry)`: extracts unique audio URLs and labels them.
-
-Accent label logic:
-
-- The Dictionary API audio filenames often end with country hints such as `-us.mp3` or `-au.mp3`.
-- The helper extracts that suffix and displays it as `US`, `AU`, etc.
-- If no suffix exists, it falls back to `Audio 1`, `Audio 2`, and so on.
-
-### `history.ts`
-
-Search history helper.
-
-Behavior:
-
-- Trims searched words.
-- Normalizes for duplicate checks.
-- Moves repeated words to the top.
-- Keeps the history capped at 20 items.
+- Store a lightweight preview of the main definitions.
+- Persist across app reloads/restarts.
+- Open offline when live requests fail.
+- Are separate from search history because they intentionally occupy storage for offline reading.
 
 ## Styling Notes
 
-The app uses Uniwind classes on React Native components.
+Shared palette tokens live in [app-theme.ts](dictionary-mobile-app/src/utils/app-theme.ts) and are mirrored in [global.css](dictionary-mobile-app/src/global.css).
 
-Rules to preserve:
+Native-safe styles live in [themed-styles.ts](dictionary-mobile-app/src/utils/themed-styles.ts). Keep these explicit styles because Android/BlueStacks cannot rely on every CSS token resolving correctly.
 
-- Use complete class strings.
-- Use `active:` states for `Pressable`.
-- Avoid function-style `Pressable` styles.
-- Keep UI readable and dense enough for a reference app.
-- Do not create nested card-heavy layouts.
-
-Theme tokens live in:
-
-```text
-src/global.css
-```
+Layout constants live in [layout.ts](dictionary-mobile-app/src/utils/layout.ts).
 
 ## Icon Shims
 
-The app uses local Lucide export shims:
+Lucide icons are exported through:
 
 ```text
 src/lucide-react-native.js
 src/lucide-react.js
 ```
 
-If a new Lucide icon is imported and Metro cannot resolve it, add the matching export to `src/lucide-react-native.js`.
+If Metro cannot resolve a new icon import, add that icon to `lucide-react-native.js`.
+
+## Verification Commands
+
+Run before committing code changes:
+
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+The user may already have the Expo dev server running. Do not restart or kill it unless asked.
 
 ## Change Tracking
 
@@ -308,31 +221,6 @@ Every meaningful implementation phase must be recorded in:
 mobile/exam/official/changes.md
 ```
 
-Each entry should include:
-
-- Date and time in `YYYY-MM-DD HH:MM` (local time). Do not use date-only headings.
-- Actor: `asimwe001`.
-- Concrete files/features changed.
+Entries use `YYYY-MM-DD HH:MM - asimwe001` and describe concrete changes.
 
 Only `asimwe001` should stage, commit, and push official exam changes.
-
-## Verification Commands
-
-Use these before committing code changes:
-
-```bash
-npx tsc --noEmit
-npm run lint
-```
-
-The user may already have the app running locally. Do not restart or kill their dev server unless asked.
-
-## Known Remaining Work
-
-Based on `tasks.md`, remaining polish work may include:
-
-- Cross-platform manual checks.
-- Final UI polish.
-- Optional synonyms and antonyms rendering.
-- Optional source URL display.
-- Final submission packaging if required.

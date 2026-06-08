@@ -185,3 +185,10 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Enabled pronunciation and full result expansion only after the live request succeeds.
 - Kept the no-internet pronunciation message only for saved previews whose live refresh failed.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:58 - asimwe001
+
+- Audited the current dictionary app codebase and refreshed tracked docs for the final feature set.
+- Updated `CODEBASE.md` with current components, utilities, saved-word flow, result preview behavior, audio rules, persistence, and verification commands.
+- Updated `design.md`, `tasks.md`, and the app `README.md` to match saved words, concise results, appearance picker, search history, and pronunciation behavior.
+- Refreshed ignored local agent/skill guidance files without staging them.
