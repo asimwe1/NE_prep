@@ -1,22 +1,24 @@
-import { Pause, Play, SkipForward, Square, Volume2 } from "lucide-react-native";
+import type { PronunciationAudio } from "@/utils/dictionary-format";
+import { Pause, Play, Square, Volume2 } from "lucide-react-native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
 
 type PronunciationButtonProps = {
-  audioUrls: string[];
+  audios: PronunciationAudio[];
 };
 
-export function PronunciationButton({ audioUrls }: PronunciationButtonProps) {
+export function PronunciationButton({ audios }: PronunciationButtonProps) {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [failed, setFailed] = React.useState<string | null>(null);
-  const currentUrl = audioUrls[selectedIndex] ?? null;
+  const currentAudio = audios[selectedIndex] ?? null;
+  const currentUrl = currentAudio?.url ?? null;
   const player = useAudioPlayer(currentUrl, { updateInterval: 250 });
   const status = useAudioPlayerStatus(player);
-  const hasAudio = audioUrls.length > 0;
+  const hasAudio = audios.length > 0;
   const isLoading = hasAudio && !status.isLoaded;
   const isPlaying = status.playing;
-  const hasMultipleAudio = audioUrls.length > 1;
+  const hasMultipleAudio = audios.length > 1;
 
   React.useEffect(() => {
     if (status.didJustFinish) {
@@ -60,8 +62,8 @@ export function PronunciationButton({ audioUrls }: PronunciationButtonProps) {
     }
   }
 
-  async function handleNextAudio() {
-    if (!hasMultipleAudio) {
+  async function handleAccentSelect(index: number) {
+    if (index === selectedIndex) {
       return;
     }
 
@@ -70,9 +72,9 @@ export function PronunciationButton({ audioUrls }: PronunciationButtonProps) {
     try {
       player.pause();
       await player.seekTo(0);
-      setSelectedIndex((current) => (current + 1) % audioUrls.length);
+      setSelectedIndex(index);
     } catch {
-      setFailed("The next pronunciation audio could not be loaded.");
+      setFailed("The selected accent audio could not be loaded.");
     }
   }
 
@@ -126,28 +128,52 @@ export function PronunciationButton({ audioUrls }: PronunciationButtonProps) {
         </Pressable>
       </View>
 
-      <Pressable
-        onPress={() => {
-          handleNextAudio().catch(() => {
-            setFailed("The next pronunciation audio could not be selected.");
-          });
-        }}
-        disabled={!hasMultipleAudio}
-        accessibilityRole="button"
-        accessibilityLabel="Use next pronunciation audio"
-        className="h-10 rounded-xl bg-secondary border border-border px-4 flex-row items-center justify-center gap-2 active:bg-muted disabled:opacity-50 border-continuous"
-      >
-        {hasMultipleAudio ? (
-          <SkipForward size={16} color="#111827" />
-        ) : (
+      <View className="gap-2">
+        <View className="flex-row flex-wrap gap-2">
+          {audios.map((audio, index) => {
+            const isSelected = index === selectedIndex;
+
+            return (
+              <Pressable
+                key={audio.id}
+                onPress={() => {
+                  handleAccentSelect(index).catch(() => {
+                    setFailed("The selected accent audio could not be used.");
+                  });
+                }}
+                disabled={!hasMultipleAudio}
+                accessibilityRole="button"
+                accessibilityLabel={`Select ${audio.label} pronunciation`}
+                className={
+                  isSelected
+                    ? "h-10 rounded-xl bg-primary px-4 flex-row items-center justify-center gap-2 active:opacity-80 disabled:opacity-100 border-continuous"
+                    : "h-10 rounded-xl bg-secondary border border-border px-4 flex-row items-center justify-center gap-2 active:bg-muted disabled:opacity-50 border-continuous"
+                }
+              >
+                <Text
+                  className={
+                    isSelected
+                      ? "text-[14px] font-semibold text-primary-foreground"
+                      : "text-[14px] font-semibold text-foreground"
+                  }
+                >
+                  {audio.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View className="flex-row items-center gap-2">
           <Volume2 size={16} color="#111827" />
-        )}
-        <Text className="text-[14px] font-medium text-foreground">
-          {hasMultipleAudio
-            ? `Pronunciation ${selectedIndex + 1} of ${audioUrls.length}`
-            : "One pronunciation available"}
-        </Text>
-      </Pressable>
+          <Text className="text-[14px] font-medium text-muted-foreground">
+            {hasMultipleAudio
+              ? `${currentAudio?.label} accent selected`
+              : `${currentAudio?.label} pronunciation available`}
+            {currentAudio?.phoneticText ? ` - ${currentAudio.phoneticText}` : ""}
+          </Text>
+        </View>
+      </View>
 
       {failed && (
         <Text selectable className="text-[13px] text-muted-foreground">
