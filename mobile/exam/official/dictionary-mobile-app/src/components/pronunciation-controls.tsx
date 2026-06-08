@@ -17,6 +17,7 @@ type PronunciationControlsProps = {
   selectedIndex: number;
   onSelectedIndexChange: (index: number) => void;
   isPlaybackDisabled?: boolean;
+  playbackDisabledMessage?: string;
 };
 
 export function PronunciationControls({
@@ -24,6 +25,7 @@ export function PronunciationControls({
   selectedIndex,
   onSelectedIndexChange,
   isPlaybackDisabled = false,
+  playbackDisabledMessage,
 }: PronunciationControlsProps) {
   const colors = useThemeColors();
   const {
@@ -39,6 +41,7 @@ export function PronunciationControls({
     selectedIndex,
     onSelectedIndexChange,
     isPlaybackDisabled,
+    playbackDisabledMessage,
   );
 
   if (!hasAudio) {

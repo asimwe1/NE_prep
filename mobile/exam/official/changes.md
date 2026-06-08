@@ -177,3 +177,11 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Kept pronunciation playback enabled when users open saved words normally while internet is available.
 - Renamed the playback guard to `isOfflineSavedResult` so the intent is explicit in the result components.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:44 - asimwe001
+
+- Changed saved-word opening into a two-stage flow: show the saved preview immediately, then refresh the full live API result in the background.
+- Kept pronunciation disabled while a saved preview is waiting for live API data because audio is not stored locally.
+- Enabled pronunciation and full result expansion only after the live request succeeds.
+- Kept the no-internet pronunciation message only for saved previews whose live refresh failed.
+- Verified with `npm run lint` and `npx tsc --noEmit`.

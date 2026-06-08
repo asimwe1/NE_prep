@@ -57,9 +57,11 @@ export default function HomeScreen() {
     React.useState(0);
   const [history, setHistory] = React.useState<SearchHistoryItem[]>([]);
   const [savedWords, setSavedWords] = React.useState<SavedWordItem[]>([]);
-  const [isOfflineSavedResult, setIsOfflineSavedResult] =
-    React.useState(false);
+  const [savedPreviewStatus, setSavedPreviewStatus] = React.useState<
+    "none" | "refreshing" | "offline"
+  >("none");
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
+  const savedRefreshWordRef = React.useRef<string | null>(null);
 
   const primaryEntry = entries[0];
   const pronunciationAudios = primaryEntry
@@ -71,6 +73,11 @@ export default function HomeScreen() {
     selectedPronunciation?.phoneticText ??
     (primaryEntry ? getDisplayPhonetic(primaryEntry) : null);
   const isCurrentWordSaved = isWordSaved(savedWords, primaryEntry?.word);
+  const isSavedPreviewResult = savedPreviewStatus !== "none";
+  const playbackDisabledMessage =
+    savedPreviewStatus === "refreshing"
+      ? "Live pronunciation is loading. Try again after the word refreshes."
+      : "Connect to the internet to hear saved-word pronunciation.";
 
   React.useEffect(() => {
     let isMounted = true;
@@ -119,10 +126,12 @@ export default function HomeScreen() {
       setFeedback(EMPTY_SEARCH_FEEDBACK);
       setHasSearched(true);
       setSelectedPronunciationIndex(0);
-      setIsOfflineSavedResult(false);
+      setSavedPreviewStatus("none");
+      savedRefreshWordRef.current = null;
       return;
     }
 
+    savedRefreshWordRef.current = null;
     setIsLoading(true);
     setFeedback(null);
     setHasSearched(true);
@@ -132,7 +141,7 @@ export default function HomeScreen() {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
       setSelectedPronunciationIndex(0);
-      setIsOfflineSavedResult(false);
+      setSavedPreviewStatus("none");
       applyHistoryUpdate((currentHistory) =>
         updateSearchHistory(
           currentHistory,
@@ -152,7 +161,7 @@ export default function HomeScreen() {
         setEntries(savedItem.entries);
         setFeedback(null);
         setSelectedPronunciationIndex(0);
-        setIsOfflineSavedResult(true);
+        setSavedPreviewStatus("offline");
         setQuery(savedItem.word);
         return;
       }
@@ -160,7 +169,7 @@ export default function HomeScreen() {
       setEntries([]);
       setFeedback(getSearchFeedback(searchError, normalizedQuery));
       setSelectedPronunciationIndex(0);
-      setIsOfflineSavedResult(false);
+      setSavedPreviewStatus("none");
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +197,45 @@ export default function HomeScreen() {
     setFeedback(null);
     setHasSearched(true);
     setSelectedPronunciationIndex(0);
-    setIsOfflineSavedResult(false);
+    setSavedPreviewStatus("refreshing");
+    refreshSavedWord(item);
+  }
+
+  function refreshSavedWord(item: SavedWordItem) {
+    const normalizedWord = item.normalizedWord;
+    savedRefreshWordRef.current = normalizedWord;
+
+    searchWord(item.word)
+      .then((result) => {
+        if (savedRefreshWordRef.current !== normalizedWord) {
+          return;
+        }
+
+        setEntries(result);
+        setSelectedPronunciationIndex(0);
+        setSavedPreviewStatus("none");
+        savedRefreshWordRef.current = null;
+        applyHistoryUpdate((currentHistory) =>
+          updateSearchHistory(
+            currentHistory,
+            result[0]?.word?.trim() || item.word,
+            result,
+          ),
+        );
+
+        const refreshedSavedItem = createSavedWordItem(result);
+
+        if (refreshedSavedItem) {
+          applySavedWordsUpdate((currentSavedWords) =>
+            upsertSavedWord(currentSavedWords, refreshedSavedItem),
+          );
+        }
+      })
+      .catch(() => {
+        if (savedRefreshWordRef.current === normalizedWord) {
+          setSavedPreviewStatus("offline");
+        }
+      });
   }
 
   function handleToggleSavedWord() {
@@ -294,7 +341,8 @@ export default function HomeScreen() {
                 isWide={isWide}
                 isSaved={isCurrentWordSaved}
                 onToggleSaved={handleToggleSavedWord}
-                isOfflineSavedResult={isOfflineSavedResult}
+                isSavedPreviewResult={isSavedPreviewResult}
+                playbackDisabledMessage={playbackDisabledMessage}
               />
             )}
           </View>

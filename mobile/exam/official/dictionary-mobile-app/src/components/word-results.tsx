@@ -14,7 +14,8 @@ type WordResultsProps = {
   isWide: boolean;
   isSaved: boolean;
   onToggleSaved: () => void;
-  isOfflineSavedResult: boolean;
+  isSavedPreviewResult: boolean;
+  playbackDisabledMessage?: string;
 };
 
 export function WordResults({
@@ -26,7 +27,8 @@ export function WordResults({
   isWide,
   isSaved,
   onToggleSaved,
-  isOfflineSavedResult,
+  isSavedPreviewResult,
+  playbackDisabledMessage,
 }: WordResultsProps) {
   const primaryEntry = entries[0];
 
@@ -43,7 +45,8 @@ export function WordResults({
       onSelectedPronunciationIndexChange={onSelectedPronunciationIndexChange}
       isSaved={isSaved}
       onToggleSaved={onToggleSaved}
-      isOfflineSavedResult={isOfflineSavedResult}
+      isSavedPreviewResult={isSavedPreviewResult}
+      playbackDisabledMessage={playbackDisabledMessage}
     />
   );
 
