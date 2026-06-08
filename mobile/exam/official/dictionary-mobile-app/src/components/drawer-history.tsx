@@ -1,5 +1,9 @@
+import { AppText } from "@/components/app-text";
+import { useThemeColors } from "@/utils/use-theme-colors";
+import { minTouchTargetStyle } from "@/utils/touch-target";
 import { X } from "lucide-react-native";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type DrawerHistoryProps = {
   history: string[];
@@ -16,48 +20,55 @@ export function DrawerHistory({
   onClose,
   onSelectWord,
 }: DrawerHistoryProps) {
+  const colors = useThemeColors();
+
   return (
     <Modal
       visible={isVisible}
       transparent
       animationType="slide"
+      presentationStyle="overFullScreen"
       onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === "android"}
+      accessibilityViewIsModal
     >
-      <View className="flex-1 flex-row bg-black/35">
-        <View className="w-[82%] max-w-[340px] bg-background pt-safe pb-safe border-r border-border">
-          <View className="px-5 py-4 flex-row items-center justify-between border-b border-border">
-            <View>
-              <Text className="text-[22px] font-bold text-foreground">
-                Search history
-              </Text>
-              <Text className="text-[14px] text-muted-foreground">
+      <View className="flex-1 flex-row bg-black/40">
+        <SafeAreaView
+          className="w-[84%] max-w-[340px] bg-background border-r border-separator"
+          edges={["top", "left", "bottom"]}
+        >
+          <View className="px-5 py-4 flex-row items-start justify-between border-b border-separator">
+            <View className="flex-1 pr-3">
+              <AppText variant="title2">Search history</AppText>
+              <AppText variant="subhead" muted className="mt-1">
                 Tap a word to search again
-              </Text>
+              </AppText>
             </View>
 
             <Pressable
               onPress={onClose}
               accessibilityRole="button"
               accessibilityLabel="Close search history"
-              className="w-10 h-10 rounded-xl bg-secondary items-center justify-center active:bg-muted border-continuous"
+              className="rounded-full bg-card border border-separator items-center justify-center active:bg-muted border-continuous"
+              style={minTouchTargetStyle()}
             >
-              <X size={20} color="#111827" />
+              <X size={20} color={colors.foreground} />
             </Pressable>
           </View>
 
           <ScrollView
-            className="flex-1"
+            style={{ flex: 1 }}
             contentContainerClassName="p-4 gap-2"
             contentInsetAdjustmentBehavior="automatic"
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
           >
             {history.length === 0 ? (
-              <View className="rounded-2xl bg-secondary p-4 gap-1 border-continuous">
-                <Text className="text-[17px] font-semibold text-foreground">
-                  No searches yet
-                </Text>
-                <Text className="text-[14px] leading-5 text-muted-foreground">
+              <View className="rounded-[12px] bg-card border border-separator p-4 gap-1 border-continuous">
+                <AppText variant="headline">No searches yet</AppText>
+                <AppText variant="subhead" muted>
                   Successful searches will appear here.
-                </Text>
+                </AppText>
               </View>
             ) : (
               history.map((word) => (
@@ -65,16 +76,20 @@ export function DrawerHistory({
                   key={word.toLowerCase()}
                   disabled={isLoading}
                   onPress={() => onSelectWord(word)}
-                  className="rounded-xl bg-card border border-border px-4 py-3 active:bg-muted disabled:opacity-50 border-continuous"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Search ${word}`}
+                  accessibilityState={{ disabled: isLoading }}
+                  className="rounded-[10px] bg-card border border-separator px-4 active:bg-muted disabled:opacity-50 border-continuous"
+                  style={{ ...minTouchTargetStyle(), paddingVertical: 10 }}
                 >
-                  <Text className="text-[17px] font-semibold text-foreground">
+                  <AppText variant="body" className="font-medium">
                     {word}
-                  </Text>
+                  </AppText>
                 </Pressable>
               ))
             )}
           </ScrollView>
-        </View>
+        </SafeAreaView>
 
         <Pressable
           className="flex-1"

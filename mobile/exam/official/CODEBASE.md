@@ -310,7 +310,7 @@ mobile/exam/official/changes.md
 
 Each entry should include:
 
-- Date.
+- Date and time in `YYYY-MM-DD HH:MM` (local time). Do not use date-only headings.
 - Actor: `asimwe001`.
 - Concrete files/features changed.
 

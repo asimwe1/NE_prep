@@ -9,19 +9,20 @@
 /* ─── Design Tokens ─── */
 
 :root {
-  
   @variant light {
-    --app-background: oklch(0.985 0 0);
+    --app-background: oklch(0.965 0.004 260);
     --app-foreground: oklch(0.12 0 0);
     --app-card: oklch(1 0 0);
-    --app-muted: oklch(0.955 0 0);
-    --app-muted-foreground: oklch(0.55 0 0);
-    --app-border: oklch(0.88 0 0);
-    --app-secondary: oklch(0.96 0 0);
+    --app-muted: oklch(0.945 0.004 260);
+    --app-muted-foreground: oklch(0.52 0.01 260);
+    --app-border: oklch(0.9 0.006 260);
+    --app-secondary: oklch(0.975 0.003 260);
     --app-accent: oklch(0.94 0 0);
     --app-primary: oklch(0.49 0.12 205);
     --app-primary-foreground: oklch(0.99 0 0);
     --app-sidebar: oklch(0.97 0 0);
+    --app-separator: oklch(0.88 0.006 260);
+    --app-fill: oklch(0.94 0.004 260);
     --app-shadow-card: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
     --app-shadow-float: 0 4px 16px oklch(0 0 0 / 0.08), 0 1px 4px oklch(0 0 0 / 0.04);
   }
@@ -31,13 +32,15 @@
     --app-foreground: oklch(0.94 0 0);
     --app-card: oklch(0.225 0 0);
     --app-muted: oklch(0.27 0 0);
-    --app-muted-foreground: oklch(0.6 0 0);
+    --app-muted-foreground: oklch(0.65 0 0);
     --app-border: oklch(0.32 0 0);
     --app-secondary: oklch(0.25 0 0);
     --app-accent: oklch(0.28 0 0);
     --app-primary: oklch(0.68 0.12 205);
-    --app-primary-foreground: oklch(0.13 0 0);
+    --app-primary-foreground: oklch(0.99 0 0);
     --app-sidebar: oklch(0.175 0 0);
+    --app-separator: oklch(0.35 0 0);
+    --app-fill: oklch(0.28 0 0);
     --app-shadow-card: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
     --app-shadow-float: 0 4px 16px oklch(0 0 0 / 0.3), 0 1px 4px oklch(0 0 0 / 0.2);
   }
@@ -56,6 +59,8 @@
   --color-primary: var(--app-primary);
   --color-primary-foreground: var(--app-primary-foreground);
   --color-sidebar: var(--app-sidebar);
+  --color-separator: var(--app-separator);
+  --color-fill: var(--app-fill);
 
   --shadow-card: var(--app-shadow-card);
   --shadow-float: var(--app-shadow-float);
@@ -74,16 +79,10 @@
   }
 }
 
-
-/* Sidebar toggle icon swap on hover */
-.sidebar-toggle-hover {
-  display: none;
-}
-.sidebar-toggle-btn:hover .sidebar-toggle-default {
-  display: none;
-}
-.sidebar-toggle-btn:hover .sidebar-toggle-hover {
-  display: flex;
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-fade-up: none;
+  }
 }
 
 @media android {
@@ -95,11 +94,48 @@
   }
 }
 
+/* iOS HIG: grouped backgrounds, system blue accent, semantic labels (light + dark). */
 @media ios {
   :root {
     --font-mono: ui-monospace;
     --font-serif: ui-serif;
     --font-sans: system-ui;
     --font-rounded: ui-rounded;
+
+    @variant light {
+      --app-background: var(--sf-grouped-bg);
+      --app-foreground: var(--sf-text);
+      --app-card: var(--sf-grouped-bg-2);
+      --app-muted: var(--sf-fill-3);
+      --app-muted-foreground: var(--sf-text-2);
+      --app-border: var(--sf-border);
+      --app-secondary: var(--sf-bg-2);
+      --app-accent: var(--sf-fill);
+      --app-primary: var(--sf-blue);
+      --app-primary-foreground: rgb(255 255 255);
+      --app-sidebar: var(--sf-grouped-bg);
+      --app-separator: var(--sf-border);
+      --app-fill: var(--sf-fill-3);
+      --app-shadow-card: none;
+      --app-shadow-float: 0 8px 24px oklch(0 0 0 / 0.12);
+    }
+
+    @variant dark {
+      --app-background: var(--sf-grouped-bg);
+      --app-foreground: var(--sf-text);
+      --app-card: var(--sf-grouped-bg-2);
+      --app-muted: var(--sf-fill-3);
+      --app-muted-foreground: var(--sf-text-2);
+      --app-border: var(--sf-border);
+      --app-secondary: var(--sf-bg-2);
+      --app-accent: var(--sf-fill);
+      --app-primary: var(--sf-blue);
+      --app-primary-foreground: rgb(255 255 255);
+      --app-sidebar: var(--sf-grouped-bg);
+      --app-separator: var(--sf-border);
+      --app-fill: var(--sf-fill-3);
+      --app-shadow-card: none;
+      --app-shadow-float: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
   }
 }

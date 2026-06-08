@@ -1,23 +1,29 @@
 import type { DictionaryMeaning } from "@/types/dictionary";
 import { DefinitionCard } from "@/components/definition-card";
-import { Text, View } from "react-native";
+import { AppText } from "@/components/app-text";
+import { View } from "react-native";
 
 type MeaningSectionProps = {
   meaning: DictionaryMeaning;
 };
 
 export function MeaningSection({ meaning }: MeaningSectionProps) {
+  const partOfSpeech = meaning.partOfSpeech || "meaning";
+
   return (
-    <View className="gap-3">
-      <View className="flex-row">
-        <View className="rounded-full bg-muted px-3 py-1">
-          <Text className="text-[13px] font-semibold text-foreground">
-            {meaning.partOfSpeech || "meaning"}
-          </Text>
+    <View
+      className="gap-2.5"
+      accessibilityLabel={`${partOfSpeech} meanings`}
+    >
+      <View className="flex-row px-1">
+        <View className="rounded-full bg-fill px-3 py-1.5">
+          <AppText variant="footnote" className="text-primary capitalize font-semibold">
+            {partOfSpeech}
+          </AppText>
         </View>
       </View>
 
-      <View className="gap-3">
+      <View className="gap-2.5">
         {meaning.definitions.map((definition, index) => (
           <DefinitionCard
             key={`${definition.definition}-${index}`}

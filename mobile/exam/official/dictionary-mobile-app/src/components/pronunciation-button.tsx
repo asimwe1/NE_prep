@@ -1,8 +1,12 @@
+import { AppText } from "@/components/app-text";
+import { useThemeColors } from "@/utils/use-theme-colors";
 import type { PronunciationAudio } from "@/utils/dictionary-format";
+import { getDecorativeIconA11yProps } from "@/utils/decorative-icon-a11y";
+import { minTouchTargetStyle } from "@/utils/touch-target";
 import { Pause, Play, Square, Volume2 } from "lucide-react-native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 type PronunciationButtonProps = {
   audios: PronunciationAudio[];
@@ -15,6 +19,7 @@ export function PronunciationButton({
   selectedIndex,
   onSelectedIndexChange,
 }: PronunciationButtonProps) {
+  const colors = useThemeColors();
   const [failed, setFailed] = React.useState<string | null>(null);
   const currentAudio = audios[selectedIndex] ?? null;
   const currentUrl = currentAudio?.url ?? null;
@@ -77,16 +82,16 @@ export function PronunciationButton({
 
   if (!hasAudio) {
     return (
-      <View className="rounded-xl bg-card border border-border px-4 py-3 border-continuous">
-        <Text className="text-[14px] text-muted-foreground">
+      <View className="rounded-[10px] bg-secondary px-4 py-3 border-continuous">
+        <AppText variant="subhead" muted>
           No pronunciation audio is available for this word.
-        </Text>
+        </AppText>
       </View>
     );
   }
 
   return (
-    <View className="gap-2">
+    <View className="gap-3" accessibilityLabel="Pronunciation controls">
       <View className="flex-row gap-2">
         <Pressable
           onPress={() => {
@@ -99,16 +104,18 @@ export function PronunciationButton({
           accessibilityLabel={
             isPlaying ? "Pause pronunciation" : "Play pronunciation"
           }
-          className="h-11 flex-1 rounded-xl bg-card border border-border px-4 flex-row items-center justify-center gap-2 active:bg-muted disabled:opacity-50 border-continuous"
+          accessibilityState={{ disabled: isLoading, busy: isLoading }}
+          className="flex-1 rounded-[10px] bg-secondary px-4 flex-row items-center justify-center gap-2 active:bg-muted disabled:opacity-50 border-continuous"
+          style={minTouchTargetStyle()}
         >
           {isPlaying ? (
-            <Pause size={18} color="#111827" />
+            <Pause size={18} color={colors.foreground} />
           ) : (
-            <Play size={18} color="#111827" />
+            <Play size={18} color={colors.foreground} />
           )}
-          <Text className="text-[15px] font-semibold text-foreground">
+          <AppText variant="headline" allowFontScaling={false}>
             {isLoading ? "Loading audio..." : isPlaying ? "Pause" : "Play"}
-          </Text>
+          </AppText>
         </Pressable>
 
         <Pressable
@@ -119,14 +126,19 @@ export function PronunciationButton({
           }}
           accessibilityRole="button"
           accessibilityLabel="Stop pronunciation"
-          className="h-11 w-12 rounded-xl bg-card border border-border items-center justify-center active:bg-muted border-continuous"
+          className="rounded-[10px] bg-secondary items-center justify-center active:bg-muted border-continuous"
+          style={minTouchTargetStyle()}
         >
-          <Square size={17} color="#111827" />
+          <Square size={17} color={colors.foreground} />
         </Pressable>
       </View>
 
       <View className="gap-2">
-        <View className="flex-row flex-wrap gap-2">
+        <View
+          className="flex-row flex-wrap gap-2"
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Pronunciation accent"
+        >
           {audios.map((audio, index) => {
             const isSelected = index === selectedIndex;
 
@@ -139,43 +151,51 @@ export function PronunciationButton({
                   });
                 }}
                 disabled={!hasMultipleAudio}
-                accessibilityRole="button"
-                accessibilityLabel={`Select ${audio.label} pronunciation`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected, disabled: !hasMultipleAudio }}
+                accessibilityLabel={`${audio.label} pronunciation`}
                 className={
                   isSelected
-                    ? "h-10 rounded-xl bg-primary px-4 flex-row items-center justify-center gap-2 active:opacity-80 disabled:opacity-100 border-continuous"
-                    : "h-10 rounded-xl bg-secondary border border-border px-4 flex-row items-center justify-center gap-2 active:bg-muted disabled:opacity-50 border-continuous"
+                    ? "rounded-full bg-primary px-4 flex-row items-center justify-center active:opacity-80 border-continuous"
+                    : "rounded-full bg-card border border-separator px-4 flex-row items-center justify-center active:bg-muted disabled:opacity-50 border-continuous"
                 }
+                style={minTouchTargetStyle()}
               >
-                <Text
+                <AppText
+                  variant="footnote"
+                  allowFontScaling={false}
                   className={
                     isSelected
-                      ? "text-[14px] font-semibold text-primary-foreground"
-                      : "text-[14px] font-semibold text-foreground"
+                      ? "font-semibold text-primary-foreground"
+                      : "font-semibold"
                   }
                 >
                   {audio.label}
-                </Text>
+                </AppText>
               </Pressable>
             );
           })}
         </View>
 
-        <View className="flex-row items-center gap-2">
-          <Volume2 size={16} color="#111827" />
-          <Text className="text-[14px] font-medium text-muted-foreground">
+        <View className="flex-row items-center gap-2 px-0.5">
+          <Volume2
+            size={15}
+            color={colors.mutedForeground}
+            {...getDecorativeIconA11yProps()}
+          />
+          <AppText variant="footnote" muted className="flex-1">
             {hasMultipleAudio
               ? `${currentAudio?.label} accent selected`
               : `${currentAudio?.label} pronunciation available`}
-            {currentAudio?.phoneticText ? ` - ${currentAudio.phoneticText}` : ""}
-          </Text>
+            {currentAudio?.phoneticText ? ` · ${currentAudio.phoneticText}` : ""}
+          </AppText>
         </View>
       </View>
 
       {failed && (
-        <Text selectable className="text-[13px] text-muted-foreground">
+        <AppText variant="footnote" muted selectable accessibilityRole="alert">
           {failed}
-        </Text>
+        </AppText>
       )}
     </View>
   );

@@ -8,7 +8,7 @@ import { Stack } from "expo-router/stack";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "react-native";
 import { SafeAreaListener } from "react-native-safe-area-context";
-import { Uniwind, useCSSVariable } from "uniwind";
+import { Uniwind } from "uniwind";
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   const colorScheme = useColorScheme();
@@ -25,24 +25,10 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  const foreground = useCSSVariable("--app-foreground") as string;
-  const background = useCSSVariable("--app-background") as string;
-
   return (
     <ThemeProvider>
-      <Stack
-        screenOptions={{
-          headerTintColor: foreground,
-          headerStyle: { backgroundColor: background },
-          headerShadowVisible: false,
-        }}
-      >
-        <Stack.Screen
-          name="index"
-          options={{
-            title: "Lexi Dictionary",
-          }}
-        />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

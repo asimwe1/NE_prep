@@ -1,9 +1,11 @@
+import { AppText } from "@/components/app-text";
 import { DrawerHistory } from "@/components/drawer-history";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { MeaningSection } from "@/components/meaning-section";
 import { PronunciationButton } from "@/components/pronunciation-button";
 import { SearchBox } from "@/components/search-box";
+import { useThemeColors } from "@/utils/use-theme-colors";
 import {
   DictionaryApiError,
   DictionaryMalformedResponseError,
@@ -16,15 +18,18 @@ import {
   getDisplayPhonetic,
 } from "@/utils/dictionary-format";
 import { updateSearchHistory } from "@/utils/history";
-import { BookOpenText, Menu } from "lucide-react-native";
+import { minTouchTargetStyle } from "@/utils/touch-target";
+import { Clock3 } from "lucide-react-native";
 import * as React from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function getFriendlyError(error: unknown): string {
   if (error instanceof DictionaryApiError && error.status === 404) {
@@ -47,6 +52,7 @@ function getFriendlyError(error: unknown): string {
 }
 
 export default function HomeScreen() {
+  const colors = useThemeColors();
   const [query, setQuery] = React.useState("");
   const [entries, setEntries] = React.useState<DictionaryEntry[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -118,7 +124,11 @@ export default function HomeScreen() {
   }
 
   return (
-    <>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      style={{ flex: 1 }}
+      edges={["top", "left", "right"]}
+    >
       <DrawerHistory
         history={history}
         isVisible={isHistoryOpen}
@@ -127,112 +137,116 @@ export default function HomeScreen() {
         onSelectWord={handleHistorySelect}
       />
 
-      <ScrollView
-        className="flex-1 bg-background"
-        contentInsetAdjustmentBehavior="automatic"
-        keyboardShouldPersistTaps="handled"
-        contentContainerClassName="px-5 pt-5 pb-safe gap-5"
-      >
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <View className="w-12 h-12 rounded-2xl bg-primary items-center justify-center border-continuous">
-              <BookOpenText size={24} color="#ffffff" />
-            </View>
-
-            <Pressable
-              onPress={() => setIsHistoryOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Open search history"
-              className="h-11 rounded-xl bg-secondary border border-border px-4 flex-row items-center gap-2 active:bg-muted border-continuous"
-            >
-              <Menu size={19} color="#111827" />
-              <Text className="text-[15px] font-semibold text-foreground">
-                History
-              </Text>
-            </Pressable>
-          </View>
-
-          <View className="gap-1">
-            <Text className="text-[30px] font-bold text-foreground">
-              Find any English word
-            </Text>
-            <Text className="text-[16px] leading-6 text-muted-foreground">
-              Search definitions, examples, meanings, and pronunciation from the
-              free Dictionary API.
-            </Text>
-          </View>
+      <View className="px-5 pt-2 pb-3 flex-row items-center justify-between border-b border-separator">
+        <View className="flex-1 pr-3" accessibilityRole="header">
+          <AppText variant="title1">
+            Lexi Dictionary
+          </AppText>
+          <AppText variant="subhead" muted className="mt-0.5">
+            Definitions, examples, and pronunciation
+          </AppText>
         </View>
 
-        <SearchBox
-          value={query}
-          isLoading={isLoading}
-          onChangeText={setQuery}
-          onSubmit={handleSearch}
-        />
+        <Pressable
+          onPress={() => setIsHistoryOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Open search history"
+          accessibilityHint="Shows your recent successful searches"
+          className="rounded-full bg-card border border-separator items-center justify-center active:bg-muted border-continuous"
+          style={minTouchTargetStyle()}
+        >
+          <Clock3 size={20} color={colors.foreground} />
+        </Pressable>
+      </View>
 
-        {isLoading && (
-          <View className="items-center justify-center rounded-2xl bg-secondary py-10 gap-3 border-continuous">
-            <ActivityIndicator size="large" colorClassName="accent-primary" />
-            <Text className="text-[15px] text-muted-foreground">
-              Searching dictionary...
-            </Text>
-          </View>
-        )}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+          contentContainerClassName="px-5 pt-4 pb-safe gap-4"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentInsetAdjustmentBehavior="automatic"
+          nestedScrollEnabled
+        >
+          <SearchBox
+            value={query}
+            isLoading={isLoading}
+            onChangeText={setQuery}
+            onSubmit={handleSearch}
+          />
 
-        {!isLoading && error && <ErrorState message={error} />}
-
-        {!isLoading && !error && !hasSearched && <EmptyState />}
-
-        {!isLoading && !error && primaryEntry && (
-          <View className="gap-5">
-            <View className="rounded-2xl bg-secondary p-5 gap-4 border-continuous">
-              <View className="gap-1">
-                <Text
-                  selectable
-                  className="text-[34px] font-bold text-foreground"
-                >
-                  {primaryEntry.word}
-                </Text>
-                {phonetic && (
-                  <Text
-                    selectable
-                    className="text-[17px] text-muted-foreground"
-                  >
-                    {phonetic}
-                  </Text>
-                )}
-              </View>
-
-              <PronunciationButton
-                key={
-                  pronunciationAudios.map((audio) => audio.url).join("|") ||
-                  "no-audio"
-                }
-                audios={pronunciationAudios}
-                selectedIndex={selectedPronunciationIndex}
-                onSelectedIndexChange={setSelectedPronunciationIndex}
-              />
+          {isLoading && (
+            <View
+              className="items-center justify-center rounded-[12px] bg-card py-12 gap-3 border border-separator border-continuous"
+              accessibilityRole="progressbar"
+              accessibilityLabel="Searching dictionary"
+              accessibilityState={{ busy: true }}
+            >
+              <ActivityIndicator size="large" color={colors.primary} />
+              <AppText variant="subhead" muted>
+                Searching dictionary...
+              </AppText>
             </View>
+          )}
 
-            {entries.map((entry, entryIndex) => (
-              <View key={`${entry.word}-${entryIndex}`} className="gap-4">
-                {entries.length > 1 && (
-                  <Text className="text-[13px] font-semibold uppercase text-muted-foreground">
-                    Entry {entryIndex + 1}
-                  </Text>
-                )}
+          {!isLoading && error && <ErrorState message={error} />}
 
-                {entry.meanings.map((meaning, meaningIndex) => (
-                  <MeaningSection
-                    key={`${meaning.partOfSpeech}-${meaningIndex}`}
-                    meaning={meaning}
-                  />
-                ))}
+          {!isLoading && !error && !hasSearched && <EmptyState />}
+
+          {!isLoading && !error && primaryEntry && (
+            <View className="gap-4">
+              <View className="rounded-[12px] bg-card p-5 gap-4 border border-separator border-continuous">
+                <View className="gap-1">
+                  <AppText variant="largeTitle" selectable>
+                    {primaryEntry.word}
+                  </AppText>
+                  {phonetic && (
+                    <AppText variant="body" muted selectable>
+                      {phonetic}
+                    </AppText>
+                  )}
+                </View>
+
+                <PronunciationButton
+                  key={
+                    pronunciationAudios.map((audio) => audio.url).join("|") ||
+                    "no-audio"
+                  }
+                  audios={pronunciationAudios}
+                  selectedIndex={selectedPronunciationIndex}
+                  onSelectedIndexChange={setSelectedPronunciationIndex}
+                />
               </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </>
+
+              {entries.map((entry, entryIndex) => (
+                <View key={`${entry.word}-${entryIndex}`} className="gap-3">
+                  {entries.length > 1 && (
+                    <AppText
+                      variant="footnote"
+                      muted
+                      className="uppercase tracking-wide font-semibold px-1"
+                    >
+                      Entry {entryIndex + 1}
+                    </AppText>
+                  )}
+
+                  {entry.meanings.map((meaning, meaningIndex) => (
+                    <MeaningSection
+                      key={`${meaning.partOfSpeech}-${meaningIndex}`}
+                      meaning={meaning}
+                    />
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

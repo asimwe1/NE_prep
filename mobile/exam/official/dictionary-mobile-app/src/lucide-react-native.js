@@ -3,6 +3,7 @@ export { default as Bell } from "../node_modules/lucide-react-native/dist/esm/ic
 export { default as BookMarked } from "../node_modules/lucide-react-native/dist/esm/icons/book-marked.mjs";
 export { default as BookOpenText } from "../node_modules/lucide-react-native/dist/esm/icons/book-open-text.mjs";
 export { default as ChevronRight } from "../node_modules/lucide-react-native/dist/esm/icons/chevron-right.mjs";
+export { default as Clock3 } from "../node_modules/lucide-react-native/dist/esm/icons/clock-3.mjs";
 export { default as CircleAlert } from "../node_modules/lucide-react-native/dist/esm/icons/circle-alert.mjs";
 export { default as CircleDollarSign } from "../node_modules/lucide-react-native/dist/esm/icons/circle-dollar-sign.mjs";
 export { default as CircleUser } from "../node_modules/lucide-react-native/dist/esm/icons/circle-user.mjs";
