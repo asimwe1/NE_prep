@@ -57,7 +57,8 @@ export default function HomeScreen() {
     React.useState(0);
   const [history, setHistory] = React.useState<SearchHistoryItem[]>([]);
   const [savedWords, setSavedWords] = React.useState<SavedWordItem[]>([]);
-  const [isSavedResult, setIsSavedResult] = React.useState(false);
+  const [isOfflineSavedResult, setIsOfflineSavedResult] =
+    React.useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
 
   const primaryEntry = entries[0];
@@ -118,7 +119,7 @@ export default function HomeScreen() {
       setFeedback(EMPTY_SEARCH_FEEDBACK);
       setHasSearched(true);
       setSelectedPronunciationIndex(0);
-      setIsSavedResult(false);
+      setIsOfflineSavedResult(false);
       return;
     }
 
@@ -131,7 +132,7 @@ export default function HomeScreen() {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
       setSelectedPronunciationIndex(0);
-      setIsSavedResult(false);
+      setIsOfflineSavedResult(false);
       applyHistoryUpdate((currentHistory) =>
         updateSearchHistory(
           currentHistory,
@@ -151,7 +152,7 @@ export default function HomeScreen() {
         setEntries(savedItem.entries);
         setFeedback(null);
         setSelectedPronunciationIndex(0);
-        setIsSavedResult(true);
+        setIsOfflineSavedResult(true);
         setQuery(savedItem.word);
         return;
       }
@@ -159,7 +160,7 @@ export default function HomeScreen() {
       setEntries([]);
       setFeedback(getSearchFeedback(searchError, normalizedQuery));
       setSelectedPronunciationIndex(0);
-      setIsSavedResult(false);
+      setIsOfflineSavedResult(false);
     } finally {
       setIsLoading(false);
     }
@@ -187,7 +188,7 @@ export default function HomeScreen() {
     setFeedback(null);
     setHasSearched(true);
     setSelectedPronunciationIndex(0);
-    setIsSavedResult(true);
+    setIsOfflineSavedResult(false);
   }
 
   function handleToggleSavedWord() {
@@ -293,7 +294,7 @@ export default function HomeScreen() {
                 isWide={isWide}
                 isSaved={isCurrentWordSaved}
                 onToggleSaved={handleToggleSavedWord}
-                isSavedResult={isSavedResult}
+                isOfflineSavedResult={isOfflineSavedResult}
               />
             )}
           </View>

@@ -170,3 +170,10 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Changed recent history back to lightweight summaries that re-run search on tap; saved words are the offline cache.
 - Disabled saved-word pronunciation playback with a clear message asking the user to connect to the internet.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:38 - asimwe001
+
+- Corrected saved-word pronunciation behavior so audio is disabled only when a saved word is opened as an offline fallback after a failed network search.
+- Kept pronunciation playback enabled when users open saved words normally while internet is available.
+- Renamed the playback guard to `isOfflineSavedResult` so the intent is explicit in the result components.
+- Verified with `npm run lint` and `npx tsc --noEmit`.

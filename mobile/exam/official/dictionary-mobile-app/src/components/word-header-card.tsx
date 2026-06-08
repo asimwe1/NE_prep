@@ -21,7 +21,7 @@ type WordHeaderCardProps = {
   onSelectedPronunciationIndexChange: (index: number) => void;
   isSaved: boolean;
   onToggleSaved: () => void;
-  isSavedResult?: boolean;
+  isOfflineSavedResult?: boolean;
 };
 
 export function WordHeaderCard({
@@ -32,7 +32,7 @@ export function WordHeaderCard({
   onSelectedPronunciationIndexChange,
   isSaved,
   onToggleSaved,
-  isSavedResult = false,
+  isOfflineSavedResult = false,
 }: WordHeaderCardProps) {
   const colors = useThemeColors();
   const hasAudio = pronunciationAudios.length > 0;
@@ -119,7 +119,7 @@ export function WordHeaderCard({
               audios={pronunciationAudios}
               selectedIndex={selectedPronunciationIndex}
               onSelectedIndexChange={onSelectedPronunciationIndexChange}
-              isPlaybackDisabled={isSavedResult}
+              isPlaybackDisabled={isOfflineSavedResult}
             />
           </View>
         )}
