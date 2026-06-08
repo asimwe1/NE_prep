@@ -161,3 +161,12 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Replaced fallback labels such as `Audio 3` with compact user-facing labels like `US 1`, `US 2`, `UK`, `AU`, or `ALT 1`.
 - Kept longer stressed/unstressed details in accessibility labels instead of crowding the visible chips.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:32 - asimwe001
+
+- Added a bookmark button to the word hero card for saving the current word preview.
+- Added persisted saved words through AsyncStorage with lightweight preview definitions for offline reading after app reloads.
+- Added a separate `Saved words` section in the drawer, distinct from recent search history.
+- Changed recent history back to lightweight summaries that re-run search on tap; saved words are the offline cache.
+- Disabled saved-word pronunciation playback with a clear message asking the user to connect to the internet.
+- Verified with `npm run lint` and `npx tsc --noEmit`.

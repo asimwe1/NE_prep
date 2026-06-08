@@ -4,6 +4,7 @@ import {
   getRelativeSearchTime,
   type SearchHistoryItem,
 } from "@/utils/history";
+import type { SavedWordItem } from "@/utils/saved-words";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import {
   androidElevation,
@@ -12,7 +13,7 @@ import {
   screenSurface,
 } from "@/utils/themed-styles";
 import { minTouchTargetStyle } from "@/utils/touch-target";
-import { X } from "lucide-react-native";
+import { Bookmark, X } from "lucide-react-native";
 import * as React from "react";
 import {
   Animated,
@@ -30,18 +31,22 @@ const OPEN_DURATION_MS = 280;
 
 type DrawerHistoryProps = {
   history: SearchHistoryItem[];
+  savedWords: SavedWordItem[];
   isVisible: boolean;
   isLoading: boolean;
   onClose: () => void;
   onSelectWord: (item: SearchHistoryItem) => void;
+  onSelectSavedWord: (item: SavedWordItem) => void;
 };
 
 export function DrawerHistory({
   history,
+  savedWords,
   isVisible,
   isLoading,
   onClose,
   onSelectWord,
+  onSelectSavedWord,
 }: DrawerHistoryProps) {
   const colors = useThemeColors();
   const translateX = React.useMemo(
@@ -161,7 +166,7 @@ export function DrawerHistory({
               keyboardShouldPersistTaps="handled"
               nestedScrollEnabled
             >
-              {history.length === 0 ? (
+              {history.length === 0 && savedWords.length === 0 ? (
                 <View className="rounded-[18px] p-4 gap-1" style={cardSurface(colors)}>
                   <AppText variant="headline">No searches yet</AppText>
                   <AppText variant="subhead" muted>
@@ -169,47 +174,66 @@ export function DrawerHistory({
                   </AppText>
                 </View>
               ) : (
-                history.map((item) => (
-                  <Pressable
-                    key={item.normalizedWord}
-                    disabled={isLoading}
-                    onPress={() => onSelectWord(item)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${item.word}. ${item.summary}. Searched ${getRelativeSearchTime(item.searchedAt, now || item.searchedAt)}`}
-                    accessibilityState={{ disabled: isLoading }}
-                    className="rounded-[14px] px-4 active:opacity-80 disabled:opacity-50"
-                    style={{
-                      ...minTouchTargetStyle(),
-                      ...cardSurface(colors),
-                      paddingVertical: 12,
-                      marginBottom: 10,
-                    }}
-                  >
-                    <View className="flex-row items-start justify-between" style={{ gap: 10 }}>
-                      <View className="flex-1">
-                        <AppText variant="body" className="font-semibold">
-                          {item.word}
-                        </AppText>
+                <View style={{ gap: 18 }}>
+                  {savedWords.length > 0 && (
+                    <View style={{ gap: 8 }}>
+                      <View className="flex-row items-center px-1" style={{ gap: 6 }}>
+                        <Bookmark
+                          size={14}
+                          color={colors.primary}
+                          fill={colors.primary}
+                        />
                         <AppText
                           variant="footnote"
-                          muted
-                          numberOfLines={2}
-                          className="mt-1"
+                          tone="primary"
+                          className="uppercase tracking-wide font-semibold"
                         >
-                          {item.summary}
+                          Saved words
                         </AppText>
                       </View>
-                      <AppText
-                        variant="caption"
-                        muted
-                        allowFontScaling={false}
-                        className="pt-0.5"
-                      >
-                        {getRelativeSearchTime(item.searchedAt, now || item.searchedAt)}
-                      </AppText>
+                      {savedWords.map((item) => (
+                        <HistoryRow
+                          key={item.normalizedWord}
+                          word={item.word}
+                          summary={item.summary}
+                          relativeTime={getRelativeSearchTime(
+                            item.savedAt,
+                            now || item.savedAt,
+                          )}
+                          isLoading={isLoading}
+                          onPress={() => onSelectSavedWord(item)}
+                          accessibilityLabel={`${item.word}. ${item.summary}. Saved ${getRelativeSearchTime(item.savedAt, now || item.savedAt)}`}
+                        />
+                      ))}
                     </View>
-                  </Pressable>
-                ))
+                  )}
+
+                  {history.length > 0 && (
+                    <View style={{ gap: 8 }}>
+                      <AppText
+                        variant="footnote"
+                        muted
+                        className="uppercase tracking-wide font-semibold px-1"
+                      >
+                        Recent searches
+                      </AppText>
+                      {history.map((item) => (
+                        <HistoryRow
+                          key={item.normalizedWord}
+                          word={item.word}
+                          summary={item.summary}
+                          relativeTime={getRelativeSearchTime(
+                            item.searchedAt,
+                            now || item.searchedAt,
+                          )}
+                          isLoading={isLoading}
+                          onPress={() => onSelectWord(item)}
+                          accessibilityLabel={`${item.word}. ${item.summary}. Searched ${getRelativeSearchTime(item.searchedAt, now || item.searchedAt)}`}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
               )}
             </ScrollView>
 
@@ -251,3 +275,58 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
 });
+
+type HistoryRowProps = {
+  word: string;
+  summary: string;
+  relativeTime: string;
+  isLoading: boolean;
+  accessibilityLabel: string;
+  onPress: () => void;
+};
+
+function HistoryRow({
+  word,
+  summary,
+  relativeTime,
+  isLoading,
+  accessibilityLabel,
+  onPress,
+}: HistoryRowProps) {
+  const colors = useThemeColors();
+
+  return (
+    <Pressable
+      disabled={isLoading}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: isLoading }}
+      className="rounded-[14px] px-4 active:opacity-80 disabled:opacity-50"
+      style={{
+        ...minTouchTargetStyle(),
+        ...cardSurface(colors),
+        paddingVertical: 12,
+      }}
+    >
+      <View className="flex-row items-start justify-between" style={{ gap: 10 }}>
+        <View className="flex-1">
+          <AppText variant="body" className="font-semibold">
+            {word}
+          </AppText>
+          <AppText variant="footnote" muted numberOfLines={2} className="mt-1">
+            {summary}
+          </AppText>
+        </View>
+        <AppText
+          variant="caption"
+          muted
+          allowFontScaling={false}
+          className="pt-0.5"
+        >
+          {relativeTime}
+        </AppText>
+      </View>
+    </Pressable>
+  );
+}

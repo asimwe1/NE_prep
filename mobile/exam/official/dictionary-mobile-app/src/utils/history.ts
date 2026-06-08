@@ -8,7 +8,6 @@ export type SearchHistoryItem = {
   word: string;
   normalizedWord: string;
   summary: string;
-  entries: DictionaryEntry[];
   searchedAt: number;
 };
 
@@ -34,26 +33,10 @@ export function updateSearchHistory(
       word: displayWord,
       normalizedWord,
       summary: getHistorySummary(entries),
-      entries,
       searchedAt,
     },
     ...withoutDuplicate,
   ].slice(0, MAX_HISTORY_ITEMS);
-}
-
-export function findCachedHistoryItem(
-  history: SearchHistoryItem[],
-  word: string,
-): SearchHistoryItem | null {
-  const normalizedWord = word.trim().toLowerCase();
-
-  if (!normalizedWord) {
-    return null;
-  }
-
-  return (
-    history.find((item) => item.normalizedWord === normalizedWord) ?? null
-  );
 }
 
 export async function loadSearchHistory(): Promise<SearchHistoryItem[]> {
@@ -155,7 +138,6 @@ function isSearchHistoryItem(value: unknown): value is SearchHistoryItem {
     typeof item.word === "string" &&
     typeof item.normalizedWord === "string" &&
     typeof item.summary === "string" &&
-    typeof item.searchedAt === "number" &&
-    Array.isArray(item.entries)
+    typeof item.searchedAt === "number"
   );
 }

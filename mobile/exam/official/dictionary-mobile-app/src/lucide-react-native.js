@@ -1,6 +1,7 @@
 export { default as ArrowRight } from "../node_modules/lucide-react-native/dist/esm/icons/arrow-right.mjs";
 export { default as Bell } from "../node_modules/lucide-react-native/dist/esm/icons/bell.mjs";
 export { default as BookMarked } from "../node_modules/lucide-react-native/dist/esm/icons/book-marked.mjs";
+export { default as Bookmark } from "../node_modules/lucide-react-native/dist/esm/icons/bookmark.mjs";
 export { default as BookOpenText } from "../node_modules/lucide-react-native/dist/esm/icons/book-open-text.mjs";
 export { default as ChevronRight } from "../node_modules/lucide-react-native/dist/esm/icons/chevron-right.mjs";
 export { default as Clock3 } from "../node_modules/lucide-react-native/dist/esm/icons/clock-3.mjs";

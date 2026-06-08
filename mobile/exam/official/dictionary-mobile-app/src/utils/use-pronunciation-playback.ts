@@ -6,6 +6,7 @@ export function usePronunciationPlayback(
   audios: PronunciationAudio[],
   selectedIndex: number,
   onSelectedIndexChange: (index: number) => void,
+  isPlaybackDisabled = false,
 ) {
   const [failed, setFailed] = React.useState<string | null>(null);
   const currentAudio = audios[selectedIndex] ?? null;
@@ -23,6 +24,11 @@ export function usePronunciationPlayback(
     }
 
     setFailed(null);
+
+    if (isPlaybackDisabled) {
+      setFailed("Connect to the internet to hear saved-word pronunciation.");
+      return;
+    }
 
     if (isPlaying) {
       player.pause();
@@ -42,6 +48,12 @@ export function usePronunciationPlayback(
     }
 
     setFailed(null);
+
+    if (isPlaybackDisabled) {
+      onSelectedIndexChange(index);
+      setFailed("Connect to the internet to hear saved-word pronunciation.");
+      return;
+    }
 
     try {
       player.pause();

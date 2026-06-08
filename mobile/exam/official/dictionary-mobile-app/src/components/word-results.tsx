@@ -12,6 +12,9 @@ type WordResultsProps = {
   selectedPronunciationIndex: number;
   onSelectedPronunciationIndexChange: (index: number) => void;
   isWide: boolean;
+  isSaved: boolean;
+  onToggleSaved: () => void;
+  isSavedResult: boolean;
 };
 
 export function WordResults({
@@ -21,6 +24,9 @@ export function WordResults({
   selectedPronunciationIndex,
   onSelectedPronunciationIndexChange,
   isWide,
+  isSaved,
+  onToggleSaved,
+  isSavedResult,
 }: WordResultsProps) {
   const primaryEntry = entries[0];
 
@@ -35,6 +41,9 @@ export function WordResults({
       pronunciationAudios={pronunciationAudios}
       selectedPronunciationIndex={selectedPronunciationIndex}
       onSelectedPronunciationIndexChange={onSelectedPronunciationIndexChange}
+      isSaved={isSaved}
+      onToggleSaved={onToggleSaved}
+      isSavedResult={isSavedResult}
     />
   );
 

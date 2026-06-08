@@ -16,12 +16,14 @@ type PronunciationControlsProps = {
   audios: PronunciationAudio[];
   selectedIndex: number;
   onSelectedIndexChange: (index: number) => void;
+  isPlaybackDisabled?: boolean;
 };
 
 export function PronunciationControls({
   audios,
   selectedIndex,
   onSelectedIndexChange,
+  isPlaybackDisabled = false,
 }: PronunciationControlsProps) {
   const colors = useThemeColors();
   const {
@@ -32,7 +34,12 @@ export function PronunciationControls({
     isPlaying,
     handlePlayPause,
     handleAccentSelect,
-  } = usePronunciationPlayback(audios, selectedIndex, onSelectedIndexChange);
+  } = usePronunciationPlayback(
+    audios,
+    selectedIndex,
+    onSelectedIndexChange,
+    isPlaybackDisabled,
+  );
 
   if (!hasAudio) {
     return null;
@@ -53,7 +60,9 @@ export function PronunciationControls({
         accessibilityLabel={
           isLoading
             ? "Loading pronunciation"
-            : isPlaying
+            : isPlaybackDisabled
+              ? "Pronunciation requires internet"
+              : isPlaying
               ? "Pause pronunciation"
               : "Play pronunciation"
         }

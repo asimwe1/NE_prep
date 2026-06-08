@@ -2,9 +2,16 @@ import { AppText } from "@/components/app-text";
 import { PronunciationControls } from "@/components/pronunciation-controls";
 import type { PronunciationAudio } from "@/utils/dictionary-format";
 import { LAYOUT } from "@/utils/layout";
-import { heroSurface, primarySoftSurface } from "@/utils/themed-styles";
+import {
+  hairlineBorder,
+  heroSurface,
+  primarySoftSurface,
+  primarySurface,
+} from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
-import { View } from "react-native";
+import { minTouchTargetStyle } from "@/utils/touch-target";
+import { Bookmark } from "lucide-react-native";
+import { Pressable, View } from "react-native";
 
 type WordHeaderCardProps = {
   word: string;
@@ -12,6 +19,9 @@ type WordHeaderCardProps = {
   pronunciationAudios: PronunciationAudio[];
   selectedPronunciationIndex: number;
   onSelectedPronunciationIndexChange: (index: number) => void;
+  isSaved: boolean;
+  onToggleSaved: () => void;
+  isSavedResult?: boolean;
 };
 
 export function WordHeaderCard({
@@ -20,6 +30,9 @@ export function WordHeaderCard({
   pronunciationAudios,
   selectedPronunciationIndex,
   onSelectedPronunciationIndexChange,
+  isSaved,
+  onToggleSaved,
+  isSavedResult = false,
 }: WordHeaderCardProps) {
   const colors = useThemeColors();
   const hasAudio = pronunciationAudios.length > 0;
@@ -46,17 +59,39 @@ export function WordHeaderCard({
           gap: 10,
         }}
       >
-        <AppText
-          variant="largeTitle"
-          selectable
-          style={{
-            fontSize: 40,
-            lineHeight: 48,
-            letterSpacing: 0,
-          }}
-        >
-          {word}
-        </AppText>
+        <View className="flex-row items-start" style={{ gap: 12 }}>
+          <AppText
+            variant="largeTitle"
+            selectable
+            className="flex-1"
+            style={{
+              fontSize: 40,
+              lineHeight: 48,
+              letterSpacing: 0,
+            }}
+          >
+            {word}
+          </AppText>
+
+          <Pressable
+            onPress={onToggleSaved}
+            accessibilityRole="button"
+            accessibilityLabel={isSaved ? "Remove saved word" : "Save word"}
+            accessibilityState={{ selected: isSaved }}
+            className="rounded-full items-center justify-center active:opacity-80"
+            style={[
+              minTouchTargetStyle(42, 42),
+              isSaved ? primarySurface(colors) : primarySoftSurface(colors),
+              hairlineBorder(isSaved ? colors.primary : colors.separator),
+            ]}
+          >
+            <Bookmark
+              size={19}
+              color={isSaved ? colors.primaryForeground : colors.primarySoftForeground}
+              fill={isSaved ? colors.primaryForeground : "none"}
+            />
+          </Pressable>
+        </View>
 
         {phonetic && (
           <View
@@ -84,6 +119,7 @@ export function WordHeaderCard({
               audios={pronunciationAudios}
               selectedIndex={selectedPronunciationIndex}
               onSelectedIndexChange={onSelectedPronunciationIndexChange}
+              isPlaybackDisabled={isSavedResult}
             />
           </View>
         )}

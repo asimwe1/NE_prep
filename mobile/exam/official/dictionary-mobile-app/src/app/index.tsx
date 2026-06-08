@@ -13,12 +13,20 @@ import {
   getDisplayPhonetic,
 } from "@/utils/dictionary-format";
 import {
-  findCachedHistoryItem,
   loadSearchHistory,
   saveSearchHistory,
   updateSearchHistory,
   type SearchHistoryItem,
 } from "@/utils/history";
+import {
+  createSavedWordItem,
+  isWordSaved,
+  loadSavedWords,
+  removeSavedWord,
+  saveSavedWords,
+  upsertSavedWord,
+  type SavedWordItem,
+} from "@/utils/saved-words";
 import { LAYOUT } from "@/utils/layout";
 import {
   EMPTY_SEARCH_FEEDBACK,
@@ -48,6 +56,8 @@ export default function HomeScreen() {
   const [selectedPronunciationIndex, setSelectedPronunciationIndex] =
     React.useState(0);
   const [history, setHistory] = React.useState<SearchHistoryItem[]>([]);
+  const [savedWords, setSavedWords] = React.useState<SavedWordItem[]>([]);
+  const [isSavedResult, setIsSavedResult] = React.useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
 
   const primaryEntry = entries[0];
@@ -59,15 +69,19 @@ export default function HomeScreen() {
   const phonetic =
     selectedPronunciation?.phoneticText ??
     (primaryEntry ? getDisplayPhonetic(primaryEntry) : null);
+  const isCurrentWordSaved = isWordSaved(savedWords, primaryEntry?.word);
 
   React.useEffect(() => {
     let isMounted = true;
 
-    loadSearchHistory().then((storedHistory) => {
-      if (isMounted) {
-        setHistory(storedHistory);
-      }
-    });
+    Promise.all([loadSearchHistory(), loadSavedWords()]).then(
+      ([storedHistory, storedSavedWords]) => {
+        if (isMounted) {
+          setHistory(storedHistory);
+          setSavedWords(storedSavedWords);
+        }
+      },
+    );
 
     return () => {
       isMounted = false;
@@ -85,6 +99,17 @@ export default function HomeScreen() {
     [],
   );
 
+  const applySavedWordsUpdate = React.useCallback(
+    (updater: (currentSavedWords: SavedWordItem[]) => SavedWordItem[]) => {
+      setSavedWords((currentSavedWords) => {
+        const nextSavedWords = updater(currentSavedWords);
+        saveSavedWords(nextSavedWords).catch(() => undefined);
+        return nextSavedWords;
+      });
+    },
+    [],
+  );
+
   async function runSearch(rawWord: string) {
     const normalizedQuery = rawWord.trim().toLowerCase();
 
@@ -93,6 +118,7 @@ export default function HomeScreen() {
       setFeedback(EMPTY_SEARCH_FEEDBACK);
       setHasSearched(true);
       setSelectedPronunciationIndex(0);
+      setIsSavedResult(false);
       return;
     }
 
@@ -105,6 +131,7 @@ export default function HomeScreen() {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
       setSelectedPronunciationIndex(0);
+      setIsSavedResult(false);
       applyHistoryUpdate((currentHistory) =>
         updateSearchHistory(
           currentHistory,
@@ -113,29 +140,26 @@ export default function HomeScreen() {
         ),
       );
     } catch (searchError) {
-      const cachedItem =
+      const savedItem =
         searchError instanceof DictionaryNetworkError
-          ? findCachedHistoryItem(history, normalizedQuery)
+          ? savedWords.find(
+              (item) => item.normalizedWord === normalizedQuery,
+            ) ?? null
           : null;
 
-      if (cachedItem) {
-        setEntries(cachedItem.entries);
+      if (savedItem) {
+        setEntries(savedItem.entries);
         setFeedback(null);
         setSelectedPronunciationIndex(0);
-        setQuery(cachedItem.word);
-        applyHistoryUpdate((currentHistory) =>
-          updateSearchHistory(
-            currentHistory,
-            cachedItem.word,
-            cachedItem.entries,
-          ),
-        );
+        setIsSavedResult(true);
+        setQuery(savedItem.word);
         return;
       }
 
       setEntries([]);
       setFeedback(getSearchFeedback(searchError, normalizedQuery));
       setSelectedPronunciationIndex(0);
+      setIsSavedResult(false);
     } finally {
       setIsLoading(false);
     }
@@ -150,13 +174,42 @@ export default function HomeScreen() {
 
   function handleHistorySelect(item: SearchHistoryItem) {
     setIsHistoryOpen(false);
+    runSearch(item.word).catch(() => {
+      setFeedback(getSearchFeedback(new Error("search failed")));
+      setIsLoading(false);
+    });
+  }
+
+  function handleSavedWordSelect(item: SavedWordItem) {
+    setIsHistoryOpen(false);
     setQuery(item.word);
     setEntries(item.entries);
     setFeedback(null);
     setHasSearched(true);
     setSelectedPronunciationIndex(0);
-    applyHistoryUpdate((currentHistory) =>
-      updateSearchHistory(currentHistory, item.word, item.entries),
+    setIsSavedResult(true);
+  }
+
+  function handleToggleSavedWord() {
+    if (!primaryEntry) {
+      return;
+    }
+
+    if (isCurrentWordSaved) {
+      applySavedWordsUpdate((currentSavedWords) =>
+        removeSavedWord(currentSavedWords, primaryEntry.word.trim().toLowerCase()),
+      );
+      return;
+    }
+
+    const savedWordItem = createSavedWordItem(entries);
+
+    if (!savedWordItem) {
+      return;
+    }
+
+    applySavedWordsUpdate((currentSavedWords) =>
+      upsertSavedWord(currentSavedWords, savedWordItem),
     );
   }
 
@@ -167,10 +220,12 @@ export default function HomeScreen() {
     >
       <DrawerHistory
         history={history}
+        savedWords={savedWords}
         isVisible={isHistoryOpen}
         isLoading={isLoading}
         onClose={() => setIsHistoryOpen(false)}
         onSelectWord={handleHistorySelect}
+        onSelectSavedWord={handleSavedWordSelect}
       />
 
       <AppHeader onOpenHistory={() => setIsHistoryOpen(true)} />
@@ -236,6 +291,9 @@ export default function HomeScreen() {
                 selectedPronunciationIndex={selectedPronunciationIndex}
                 onSelectedPronunciationIndexChange={setSelectedPronunciationIndex}
                 isWide={isWide}
+                isSaved={isCurrentWordSaved}
+                onToggleSaved={handleToggleSavedWord}
+                isSavedResult={isSavedResult}
               />
             )}
           </View>
