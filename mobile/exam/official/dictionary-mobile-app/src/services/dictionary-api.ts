@@ -10,18 +10,44 @@ export class DictionaryApiError extends Error {
   }
 }
 
+export class DictionaryNetworkError extends Error {
+  constructor() {
+    super("Dictionary API network request failed");
+    this.name = "DictionaryNetworkError";
+  }
+}
+
+export class DictionaryMalformedResponseError extends Error {
+  constructor() {
+    super("Dictionary API returned an unexpected response shape");
+    this.name = "DictionaryMalformedResponseError";
+  }
+}
+
 export async function searchWord(word: string): Promise<DictionaryEntry[]> {
   try {
-    const response = await axios.get<DictionaryEntry[]>(
+    const response = await axios.get<unknown>(
       `${BASE_URL}/${encodeURIComponent(word)}`,
     );
 
-    return response.data;
+    if (!Array.isArray(response.data)) {
+      throw new DictionaryMalformedResponseError();
+    }
+
+    return response.data as DictionaryEntry[];
   } catch (error) {
+    if (error instanceof DictionaryMalformedResponseError) {
+      throw error;
+    }
+
     if (isAxiosError(error) && error.response?.status) {
       throw new DictionaryApiError(error.response.status);
     }
 
-    throw error;
+    if (isAxiosError(error) && !error.response) {
+      throw new DictionaryNetworkError();
+    }
+
+    throw new DictionaryNetworkError();
   }
 }

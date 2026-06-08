@@ -31,3 +31,12 @@ This file tracks project changes made during the official mobile exam build.
 - Fixed pronunciation playback so audio plays once and waits for another user press instead of looping.
 - Lifted selected pronunciation accent state to the search screen.
 - Updated the displayed phonetic text to match the selected accent when the API provides accent-specific phonetics.
+
+## 2026-06-08 - asimwe001
+
+- Completed Activity 4 drawer navigation and search history requirements.
+- Added a drawer-style history panel with successful search entries.
+- Added duplicate history handling so repeated words move to the latest position.
+- Added tap-to-search behavior from history items.
+- Improved Activity 5 error handling with explicit network and malformed-response messages.
+- Updated `tasks.md` to mark API integration, drawer history, axios usage, and offline feedback items complete.

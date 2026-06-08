@@ -1,21 +1,42 @@
+import { DrawerHistory } from "@/components/drawer-history";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { MeaningSection } from "@/components/meaning-section";
 import { PronunciationButton } from "@/components/pronunciation-button";
 import { SearchBox } from "@/components/search-box";
-import { DictionaryApiError, searchWord } from "@/services/dictionary-api";
+import {
+  DictionaryApiError,
+  DictionaryMalformedResponseError,
+  DictionaryNetworkError,
+  searchWord,
+} from "@/services/dictionary-api";
 import type { DictionaryEntry } from "@/types/dictionary";
 import {
   findPronunciationAudios,
   getDisplayPhonetic,
 } from "@/utils/dictionary-format";
-import { BookOpenText } from "lucide-react-native";
+import { updateSearchHistory } from "@/utils/history";
+import { BookOpenText, Menu } from "lucide-react-native";
 import * as React from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 function getFriendlyError(error: unknown): string {
   if (error instanceof DictionaryApiError && error.status === 404) {
     return "No definition found for this word. Check the spelling and try again.";
+  }
+
+  if (error instanceof DictionaryNetworkError) {
+    return "Unable to reach the dictionary service. Check your connection and try again.";
+  }
+
+  if (error instanceof DictionaryMalformedResponseError) {
+    return "The dictionary service returned data this app could not read. Try another word.";
   }
 
   if (error instanceof DictionaryApiError) {
@@ -33,6 +54,8 @@ export default function HomeScreen() {
   const [hasSearched, setHasSearched] = React.useState(false);
   const [selectedPronunciationIndex, setSelectedPronunciationIndex] =
     React.useState(0);
+  const [history, setHistory] = React.useState<string[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
 
   const primaryEntry = entries[0];
   const pronunciationAudios = primaryEntry
@@ -44,8 +67,8 @@ export default function HomeScreen() {
     selectedPronunciation?.phoneticText ??
     (primaryEntry ? getDisplayPhonetic(primaryEntry) : null);
 
-  async function handleSearch() {
-    const normalizedQuery = query.trim().toLowerCase();
+  async function runSearch(rawWord: string) {
+    const normalizedQuery = rawWord.trim().toLowerCase();
 
     if (!normalizedQuery) {
       setEntries([]);
@@ -58,11 +81,18 @@ export default function HomeScreen() {
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
+    setQuery(normalizedQuery);
 
     try {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
       setSelectedPronunciationIndex(0);
+      setHistory((currentHistory) =>
+        updateSearchHistory(
+          currentHistory,
+          result[0]?.word?.trim() || normalizedQuery,
+        ),
+      );
     } catch (searchError) {
       setEntries([]);
       setError(getFriendlyError(searchError));
@@ -72,91 +102,137 @@ export default function HomeScreen() {
     }
   }
 
-  return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentInsetAdjustmentBehavior="automatic"
-      keyboardShouldPersistTaps="handled"
-      contentContainerClassName="px-5 pt-5 pb-safe gap-5"
-    >
-      <View className="gap-3">
-        <View className="w-12 h-12 rounded-2xl bg-primary items-center justify-center border-continuous">
-          <BookOpenText size={24} color="#ffffff" />
-        </View>
-        <View className="gap-1">
-          <Text className="text-[30px] font-bold text-foreground">
-            Find any English word
-          </Text>
-          <Text className="text-[16px] leading-6 text-muted-foreground">
-            Search definitions, examples, meanings, and pronunciation from the
-            free Dictionary API.
-          </Text>
-        </View>
-      </View>
+  function handleSearch() {
+    runSearch(query).catch(() => {
+      setError("Something went wrong while searching. Try again.");
+      setIsLoading(false);
+    });
+  }
 
-      <SearchBox
-        value={query}
+  function handleHistorySelect(word: string) {
+    setIsHistoryOpen(false);
+    runSearch(word).catch(() => {
+      setError("Something went wrong while searching. Try again.");
+      setIsLoading(false);
+    });
+  }
+
+  return (
+    <>
+      <DrawerHistory
+        history={history}
+        isVisible={isHistoryOpen}
         isLoading={isLoading}
-        onChangeText={setQuery}
-        onSubmit={handleSearch}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectWord={handleHistorySelect}
       />
 
-      {isLoading && (
-        <View className="items-center justify-center rounded-2xl bg-secondary py-10 gap-3 border-continuous">
-          <ActivityIndicator size="large" colorClassName="accent-primary" />
-          <Text className="text-[15px] text-muted-foreground">
-            Searching dictionary...
-          </Text>
-        </View>
-      )}
-
-      {!isLoading && error && <ErrorState message={error} />}
-
-      {!isLoading && !error && !hasSearched && <EmptyState />}
-
-      {!isLoading && !error && primaryEntry && (
-        <View className="gap-5">
-          <View className="rounded-2xl bg-secondary p-5 gap-4 border-continuous">
-            <View className="gap-1">
-              <Text selectable className="text-[34px] font-bold text-foreground">
-                {primaryEntry.word}
-              </Text>
-              {phonetic && (
-                <Text selectable className="text-[17px] text-muted-foreground">
-                  {phonetic}
-                </Text>
-              )}
+      <ScrollView
+        className="flex-1 bg-background"
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        contentContainerClassName="px-5 pt-5 pb-safe gap-5"
+      >
+        <View className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <View className="w-12 h-12 rounded-2xl bg-primary items-center justify-center border-continuous">
+              <BookOpenText size={24} color="#ffffff" />
             </View>
 
-            <PronunciationButton
-              key={
-                pronunciationAudios.map((audio) => audio.url).join("|") ||
-                "no-audio"
-              }
-              audios={pronunciationAudios}
-              selectedIndex={selectedPronunciationIndex}
-              onSelectedIndexChange={setSelectedPronunciationIndex}
-            />
+            <Pressable
+              onPress={() => setIsHistoryOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Open search history"
+              className="h-11 rounded-xl bg-secondary border border-border px-4 flex-row items-center gap-2 active:bg-muted border-continuous"
+            >
+              <Menu size={19} color="#111827" />
+              <Text className="text-[15px] font-semibold text-foreground">
+                History
+              </Text>
+            </Pressable>
           </View>
 
-          {entries.map((entry, entryIndex) => (
-            <View key={`${entry.word}-${entryIndex}`} className="gap-4">
-              {entries.length > 1 && (
-                <Text className="text-[13px] font-semibold uppercase text-muted-foreground">
-                  Entry {entryIndex + 1}
-                </Text>
-              )}
-
-              {entry.meanings.map((meaning, meaningIndex) => (
-                <MeaningSection
-                  key={`${meaning.partOfSpeech}-${meaningIndex}`}
-                  meaning={meaning}
-                />
-              ))}
-            </View>
-          ))}
+          <View className="gap-1">
+            <Text className="text-[30px] font-bold text-foreground">
+              Find any English word
+            </Text>
+            <Text className="text-[16px] leading-6 text-muted-foreground">
+              Search definitions, examples, meanings, and pronunciation from the
+              free Dictionary API.
+            </Text>
+          </View>
         </View>
-      )}
-    </ScrollView>
+
+        <SearchBox
+          value={query}
+          isLoading={isLoading}
+          onChangeText={setQuery}
+          onSubmit={handleSearch}
+        />
+
+        {isLoading && (
+          <View className="items-center justify-center rounded-2xl bg-secondary py-10 gap-3 border-continuous">
+            <ActivityIndicator size="large" colorClassName="accent-primary" />
+            <Text className="text-[15px] text-muted-foreground">
+              Searching dictionary...
+            </Text>
+          </View>
+        )}
+
+        {!isLoading && error && <ErrorState message={error} />}
+
+        {!isLoading && !error && !hasSearched && <EmptyState />}
+
+        {!isLoading && !error && primaryEntry && (
+          <View className="gap-5">
+            <View className="rounded-2xl bg-secondary p-5 gap-4 border-continuous">
+              <View className="gap-1">
+                <Text
+                  selectable
+                  className="text-[34px] font-bold text-foreground"
+                >
+                  {primaryEntry.word}
+                </Text>
+                {phonetic && (
+                  <Text
+                    selectable
+                    className="text-[17px] text-muted-foreground"
+                  >
+                    {phonetic}
+                  </Text>
+                )}
+              </View>
+
+              <PronunciationButton
+                key={
+                  pronunciationAudios.map((audio) => audio.url).join("|") ||
+                  "no-audio"
+                }
+                audios={pronunciationAudios}
+                selectedIndex={selectedPronunciationIndex}
+                onSelectedIndexChange={setSelectedPronunciationIndex}
+              />
+            </View>
+
+            {entries.map((entry, entryIndex) => (
+              <View key={`${entry.word}-${entryIndex}`} className="gap-4">
+                {entries.length > 1 && (
+                  <Text className="text-[13px] font-semibold uppercase text-muted-foreground">
+                    Entry {entryIndex + 1}
+                  </Text>
+                )}
+
+                {entry.meanings.map((meaning, meaningIndex) => (
+                  <MeaningSection
+                    key={`${meaning.partOfSpeech}-${meaningIndex}`}
+                    meaning={meaning}
+                  />
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </>
   );
 }

@@ -8,7 +8,7 @@ Use this checklist with `design.md`.
 - [x] Keep local agent files ignored from Git.
 - [x] Add tracked planning docs for the exam.
 - [ ] Complete cross-platform compatibility checks.
-- [ ] Complete API integration.
+- [x] Complete API integration.
 - [ ] Complete user-friendly experience polish.
 
 ## Activity 1: Word Search and API Integration
@@ -20,7 +20,7 @@ Use this checklist with `design.md`.
 - [x] Display a loading indicator while the API request is in progress.
 - [x] Receive and parse the JSON response from the API.
 - [x] Store fetched word data temporarily for display and navigation.
-- [ ] Confirm axios is installed and used for all API requests.
+- [x] Confirm axios is installed and used for all API requests.
 
 ## Activity 2: Display Word Details
 
@@ -45,14 +45,14 @@ Use this checklist with `design.md`.
 
 ## Activity 4: Drawer Navigation and Search History
 
-- [ ] Implement a drawer navigator in the application layout.
-- [ ] Create a search history data structure to store previously searched words.
-- [ ] Add each successfully searched word to the history list.
-- [ ] Display the list of searched words in the drawer menu.
-- [ ] Allow the user to tap a word from the drawer.
-- [ ] Trigger a new API request when a history item is selected.
-- [ ] Refresh the word details screen with the selected word data.
-- [ ] Prevent duplicate entries; move repeated words to the top instead.
+- [x] Implement a drawer navigator in the application layout.
+- [x] Create a search history data structure to store previously searched words.
+- [x] Add each successfully searched word to the history list.
+- [x] Display the list of searched words in the drawer menu.
+- [x] Allow the user to tap a word from the drawer.
+- [x] Trigger a new API request when a history item is selected.
+- [x] Refresh the word details screen with the selected word data.
+- [x] Prevent duplicate entries; move repeated words to the top instead.
 
 ## Activity 5: Error Handling and User Feedback
 
@@ -63,7 +63,7 @@ Use this checklist with `design.md`.
 - [x] Hide loading indicators when an error occurs.
 - [x] Prevent the app from crashing due to malformed or missing response fields.
 - [x] Display empty-state messages when no data is available.
-- [ ] Add explicit offline/connectivity feedback if the platform exposes it.
+- [x] Add explicit offline/connectivity feedback if the platform exposes it.
 
 ## Instructions
 
@@ -72,12 +72,12 @@ Use this checklist with `design.md`.
 - [x] Build the Android/iOS application using React Native.
 - [x] Validate input where applicable.
 - [x] Handle errors and validations with relevant user-facing messages.
-- [ ] Use axios for all API interactions.
+- [x] Use axios for all API interactions.
 - [ ] Test mobile application flows using the Expo CLI package.
 
 ## Next Implementation Phase
 
 - [x] Replace temporary pronunciation URL opening with in-app audio playback.
-- [ ] Add drawer navigation and search history.
+- [x] Add drawer navigation and search history.
 - [ ] Improve result rendering for synonyms, antonyms, and multiple audio sources.
 - [ ] Add final UX polish after feature completion.

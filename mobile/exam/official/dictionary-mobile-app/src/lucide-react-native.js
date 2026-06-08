@@ -26,3 +26,4 @@ export { default as SunMoon } from "../node_modules/lucide-react-native/dist/esm
 export { default as TrendingUp } from "../node_modules/lucide-react-native/dist/esm/icons/trending-up.mjs";
 export { default as Vibrate } from "../node_modules/lucide-react-native/dist/esm/icons/vibrate.mjs";
 export { default as Volume2 } from "../node_modules/lucide-react-native/dist/esm/icons/volume-2.mjs";
+export { default as X } from "../node_modules/lucide-react-native/dist/esm/icons/x.mjs";
