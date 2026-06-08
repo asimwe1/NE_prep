@@ -3,10 +3,41 @@ import axios, { isAxiosError } from "axios";
 
 const BASE_URL = "https://api.dictionaryapi.dev/api/v2/entries/en";
 
+type DictionaryApiErrorBody = {
+  title?: string;
+  message?: string;
+  resolution?: string;
+};
+
+function readApiErrorBody(data: unknown): DictionaryApiErrorBody | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const body = data as Record<string, unknown>;
+
+  return {
+    title: typeof body.title === "string" ? body.title : undefined,
+    message: typeof body.message === "string" ? body.message : undefined,
+    resolution:
+      typeof body.resolution === "string" ? body.resolution : undefined,
+  };
+}
+
 export class DictionaryApiError extends Error {
-  constructor(public readonly status: number) {
+  readonly apiTitle?: string;
+  readonly apiMessage?: string;
+  readonly apiResolution?: string;
+
+  constructor(
+    public readonly status: number,
+    apiBody?: DictionaryApiErrorBody | null,
+  ) {
     super(`Dictionary API request failed with status ${status}`);
     this.name = "DictionaryApiError";
+    this.apiTitle = apiBody?.title;
+    this.apiMessage = apiBody?.message;
+    this.apiResolution = apiBody?.resolution;
   }
 }
 
@@ -41,7 +72,8 @@ export async function searchWord(word: string): Promise<DictionaryEntry[]> {
     }
 
     if (isAxiosError(error) && error.response?.status) {
-      throw new DictionaryApiError(error.response.status);
+      const apiBody = readApiErrorBody(error.response.data);
+      throw new DictionaryApiError(error.response.status, apiBody);
     }
 
     if (isAxiosError(error) && !error.response) {

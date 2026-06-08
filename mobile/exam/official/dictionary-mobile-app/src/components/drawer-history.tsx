@@ -1,9 +1,28 @@
 import { AppText } from "@/components/app-text";
+import { ThemeAppearanceControl } from "@/components/theme-appearance-control";
 import { useThemeColors } from "@/utils/use-theme-colors";
+import {
+  androidElevation,
+  cardSurface,
+  hairlineBorder,
+  screenSurface,
+} from "@/utils/themed-styles";
 import { minTouchTargetStyle } from "@/utils/touch-target";
 import { X } from "lucide-react-native";
-import { Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import * as React from "react";
+import {
+  Animated,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const DRAWER_SLIDE_OFFSET = -360;
+const OPEN_DURATION_MS = 280;
 
 type DrawerHistoryProps = {
   history: string[];
@@ -21,83 +40,175 @@ export function DrawerHistory({
   onSelectWord,
 }: DrawerHistoryProps) {
   const colors = useThemeColors();
+  const translateX = React.useMemo(
+    () => new Animated.Value(DRAWER_SLIDE_OFFSET),
+    [],
+  );
+  const backdropOpacity = React.useMemo(() => new Animated.Value(0), []);
+
+  React.useEffect(() => {
+    if (!isVisible) {
+      translateX.setValue(DRAWER_SLIDE_OFFSET);
+      backdropOpacity.setValue(0);
+      return;
+    }
+
+    translateX.setValue(DRAWER_SLIDE_OFFSET);
+    backdropOpacity.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: OPEN_DURATION_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: OPEN_DURATION_MS,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isVisible, translateX, backdropOpacity]);
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Modal
       visible={isVisible}
       transparent
-      animationType="slide"
+      animationType="none"
       presentationStyle="overFullScreen"
       onRequestClose={onClose}
       statusBarTranslucent={Platform.OS === "android"}
       accessibilityViewIsModal
     >
-      <View className="flex-1 flex-row bg-black/40">
-        <SafeAreaView
-          className="w-[84%] max-w-[340px] bg-background border-r border-separator"
-          edges={["top", "left", "bottom"]}
+      <View style={styles.modalRoot}>
+        <Animated.View
+          pointerEvents="box-none"
+          style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
         >
-          <View className="px-5 py-4 flex-row items-start justify-between border-b border-separator">
-            <View className="flex-1 pr-3">
-              <AppText variant="title2">Search history</AppText>
-              <AppText variant="subhead" muted className="mt-1">
-                Tap a word to search again
-              </AppText>
-            </View>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close search history"
+            style={[StyleSheet.absoluteFill, styles.backdrop]}
+          />
+        </Animated.View>
 
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel="Close search history"
-              className="rounded-full bg-card border border-separator items-center justify-center active:bg-muted border-continuous"
-              style={minTouchTargetStyle()}
+        <Animated.View
+          style={[
+            styles.drawer,
+            screenSurface(colors),
+            androidElevation(12),
+            {
+              transform: [{ translateX }],
+              borderRightWidth: StyleSheet.hairlineWidth,
+              borderRightColor: colors.separator,
+            },
+          ]}
+        >
+          <SafeAreaView style={screenSurface(colors)} edges={["top", "left", "bottom"]}>
+            <View
+              className="px-5 py-4 flex-row items-start justify-between"
+              style={{
+                ...hairlineBorder(colors.separator),
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                backgroundColor: colors.background,
+              }}
             >
-              <X size={20} color={colors.foreground} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerClassName="p-4 gap-2"
-            contentInsetAdjustmentBehavior="automatic"
-            keyboardShouldPersistTaps="handled"
-            nestedScrollEnabled
-          >
-            {history.length === 0 ? (
-              <View className="rounded-[12px] bg-card border border-separator p-4 gap-1 border-continuous">
-                <AppText variant="headline">No searches yet</AppText>
-                <AppText variant="subhead" muted>
-                  Successful searches will appear here.
+              <View className="flex-1 pr-3">
+                <AppText variant="title2">Search history</AppText>
+                <AppText variant="subhead" muted className="mt-1">
+                  Tap a word to search again
                 </AppText>
               </View>
-            ) : (
-              history.map((word) => (
-                <Pressable
-                  key={word.toLowerCase()}
-                  disabled={isLoading}
-                  onPress={() => onSelectWord(word)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Search ${word}`}
-                  accessibilityState={{ disabled: isLoading }}
-                  className="rounded-[10px] bg-card border border-separator px-4 active:bg-muted disabled:opacity-50 border-continuous"
-                  style={{ ...minTouchTargetStyle(), paddingVertical: 10 }}
-                >
-                  <AppText variant="body" className="font-medium">
-                    {word}
-                  </AppText>
-                </Pressable>
-              ))
-            )}
-          </ScrollView>
-        </SafeAreaView>
 
-        <Pressable
-          className="flex-1"
-          accessibilityRole="button"
-          accessibilityLabel="Close search history"
-          onPress={onClose}
-        />
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="Close search history"
+                className="rounded-full items-center justify-center active:opacity-80"
+                style={[minTouchTargetStyle(), cardSurface(colors)]}
+              >
+                <X size={20} color={colors.foreground} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              style={[screenSurface(colors), { flex: 1 }]}
+              contentContainerStyle={styles.historyList}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            >
+              {history.length === 0 ? (
+                <View className="rounded-[12px] p-4 gap-1" style={cardSurface(colors)}>
+                  <AppText variant="headline">No searches yet</AppText>
+                  <AppText variant="subhead" muted>
+                    Successful searches will appear here.
+                  </AppText>
+                </View>
+              ) : (
+                history.map((word) => (
+                  <Pressable
+                    key={word.toLowerCase()}
+                    disabled={isLoading}
+                    onPress={() => onSelectWord(word)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Search ${word}`}
+                    accessibilityState={{ disabled: isLoading }}
+                    className="rounded-[10px] px-4 active:opacity-80 disabled:opacity-50"
+                    style={{
+                      ...minTouchTargetStyle(),
+                      ...cardSurface(colors),
+                      paddingVertical: 10,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <AppText variant="body" className="font-medium">
+                      {word}
+                    </AppText>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+
+            <View
+              className="px-4 pt-3 pb-4"
+              style={{
+                ...hairlineBorder(colors.separator),
+                borderTopWidth: StyleSheet.hairlineWidth,
+                backgroundColor: colors.background,
+              }}
+            >
+              <ThemeAppearanceControl />
+            </View>
+          </SafeAreaView>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+  },
+  backdrop: {
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+  },
+  drawer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: "84%",
+    maxWidth: 340,
+    zIndex: 2,
+  },
+  historyList: {
+    padding: 16,
+    paddingBottom: 24,
+  },
+});

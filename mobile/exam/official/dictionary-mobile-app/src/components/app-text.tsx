@@ -2,6 +2,7 @@ import {
   IOS_MAX_FONT_SCALE,
   IOS_TEXT_STYLE,
 } from "@/utils/ios-design";
+import { useThemeColors } from "@/utils/use-theme-colors";
 import * as React from "react";
 import {
   Platform,
@@ -16,6 +17,7 @@ type AppTextProps = RNTextProps & {
   variant?: AppTextVariant;
   muted?: boolean;
   className?: string;
+  tone?: "default" | "primary" | "onPrimary";
 };
 
 const VARIANT_CLASS: Record<AppTextVariant, string> = {
@@ -33,13 +35,22 @@ const VARIANT_CLASS: Record<AppTextVariant, string> = {
 export function AppText({
   variant = "body",
   muted = false,
+  tone = "default",
   className = "",
   style,
   allowFontScaling = true,
   maxFontSizeMultiplier = IOS_MAX_FONT_SCALE,
   ...props
 }: AppTextProps) {
-  const toneClass = muted ? "text-muted-foreground" : "text-foreground";
+  const colors = useThemeColors();
+  const textColor =
+    tone === "onPrimary"
+      ? colors.primaryForeground
+      : tone === "primary"
+        ? colors.primary
+        : muted
+          ? colors.mutedForeground
+          : colors.foreground;
   const iosFont: TextStyle =
     Platform.OS === "ios" ? { fontFamily: undefined } : {};
 
@@ -47,8 +58,8 @@ export function AppText({
     <RNText
       allowFontScaling={allowFontScaling}
       maxFontSizeMultiplier={maxFontSizeMultiplier}
-      className={`${VARIANT_CLASS[variant]} ${toneClass} ${className}`.trim()}
-      style={[iosFont, style]}
+      className={VARIANT_CLASS[variant] + (className ? ` ${className}` : "")}
+      style={[{ color: textColor }, iosFont, style]}
       {...props}
     />
   );
