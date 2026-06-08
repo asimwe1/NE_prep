@@ -87,7 +87,7 @@ export function PronunciationControls({
               }}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={`${audio.label} pronunciation`}
+              accessibilityLabel={audio.accessibilityLabel}
               className="rounded-full px-3.5 items-center justify-center active:opacity-80"
               style={{
                 ...minTouchTargetStyle(0, 32),

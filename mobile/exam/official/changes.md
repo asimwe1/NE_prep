@@ -153,3 +153,11 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Added offline fallback for manual searches when a cached word exists and the network request fails.
 - Updated the history drawer to show each word, one subtle meaning preview, and relative time such as `3 sec ago`, `1 min ago`, or `2 days ago`.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:20 - asimwe001
+
+- Improved pronunciation audio labeling for words with multiple files under the same accent.
+- Parsed accent tokens anywhere in pronunciation filenames, including patterns like `us-stressed`, `us-unstressed`, `uk`, and `gb`.
+- Replaced fallback labels such as `Audio 3` with compact user-facing labels like `US 1`, `US 2`, `UK`, `AU`, or `ALT 1`.
+- Kept longer stressed/unstressed details in accessibility labels instead of crowding the visible chips.
+- Verified with `npm run lint` and `npx tsc --noEmit`.
