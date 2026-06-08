@@ -11,11 +11,15 @@ export { default as Globe } from "../node_modules/lucide-react-native/dist/esm/i
 export { default as List } from "../node_modules/lucide-react-native/dist/esm/icons/list.mjs";
 export { default as LogOut } from "../node_modules/lucide-react-native/dist/esm/icons/log-out.mjs";
 export { default as Menu } from "../node_modules/lucide-react-native/dist/esm/icons/menu.mjs";
+export { default as Monitor } from "../node_modules/lucide-react-native/dist/esm/icons/monitor.mjs";
+export { default as Moon } from "../node_modules/lucide-react-native/dist/esm/icons/moon.mjs";
 export { default as Minus } from "../node_modules/lucide-react-native/dist/esm/icons/minus.mjs";
 export { default as Pause } from "../node_modules/lucide-react-native/dist/esm/icons/pause.mjs";
 export { default as Play } from "../node_modules/lucide-react-native/dist/esm/icons/play.mjs";
 export { default as Plus } from "../node_modules/lucide-react-native/dist/esm/icons/plus.mjs";
 export { default as Search } from "../node_modules/lucide-react-native/dist/esm/icons/search.mjs";
+export { default as SearchX } from "../node_modules/lucide-react-native/dist/esm/icons/search-x.mjs";
+export { default as WifiOff } from "../node_modules/lucide-react-native/dist/esm/icons/wifi-off.mjs";
 export { default as Settings } from "../node_modules/lucide-react-native/dist/esm/icons/settings.mjs";
 export { default as ShieldCheck } from "../node_modules/lucide-react-native/dist/esm/icons/shield-check.mjs";
 export { default as SkipForward } from "../node_modules/lucide-react-native/dist/esm/icons/skip-forward.mjs";
@@ -23,6 +27,7 @@ export { default as Sparkles } from "../node_modules/lucide-react-native/dist/es
 export { default as SquarePen } from "../node_modules/lucide-react-native/dist/esm/icons/square-pen.mjs";
 export { default as Square } from "../node_modules/lucide-react-native/dist/esm/icons/square.mjs";
 export { default as Star } from "../node_modules/lucide-react-native/dist/esm/icons/star.mjs";
+export { default as Sun } from "../node_modules/lucide-react-native/dist/esm/icons/sun.mjs";
 export { default as SunMoon } from "../node_modules/lucide-react-native/dist/esm/icons/sun-moon.mjs";
 export { default as TrendingUp } from "../node_modules/lucide-react-native/dist/esm/icons/trending-up.mjs";
 export { default as Vibrate } from "../node_modules/lucide-react-native/dist/esm/icons/vibrate.mjs";
