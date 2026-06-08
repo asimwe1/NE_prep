@@ -10,39 +10,39 @@
 
 :root {
   @variant light {
-    --app-background: #f2f4f7;
-    --app-foreground: #111827;
+    --app-background: #eef5f2;
+    --app-foreground: #1f2933;
     --app-card: #ffffff;
-    --app-muted: #eef1f6;
-    --app-muted-foreground: #6b7280;
-    --app-border: #e4e8ef;
-    --app-secondary: #f7f8fb;
-    --app-accent: #eef1f6;
-    --app-primary: #0d7f92;
+    --app-muted: #e5efeb;
+    --app-muted-foreground: #66756f;
+    --app-border: #dce8e3;
+    --app-secondary: #f7faf8;
+    --app-accent: #d9783d;
+    --app-primary: #0b7f72;
     --app-primary-foreground: #ffffff;
-    --app-sidebar: #f2f4f7;
-    --app-separator: #e4e8ef;
-    --app-fill: #eef1f6;
-    --app-shadow-card: 0 1px 3px rgb(17 24 39 / 0.06), 0 1px 2px rgb(17 24 39 / 0.04);
-    --app-shadow-float: 0 4px 16px rgb(17 24 39 / 0.08), 0 1px 4px rgb(17 24 39 / 0.04);
+    --app-sidebar: #eef5f2;
+    --app-separator: #dce8e3;
+    --app-fill: #e5efeb;
+    --app-shadow-card: 0 6px 18px rgb(31 41 51 / 0.08), 0 1px 3px rgb(31 41 51 / 0.04);
+    --app-shadow-float: 0 14px 34px rgb(31 41 51 / 0.14), 0 2px 8px rgb(31 41 51 / 0.06);
   }
 
   @variant dark {
-    --app-background: #111827;
-    --app-foreground: #f3f4f6;
-    --app-card: #1f2937;
-    --app-muted: #243041;
-    --app-muted-foreground: #9ca3af;
-    --app-border: #374151;
-    --app-secondary: #1a2332;
-    --app-accent: #243041;
-    --app-primary: #3eb8cc;
+    --app-background: #101916;
+    --app-foreground: #f7f2e8;
+    --app-card: #17231f;
+    --app-muted: #20322d;
+    --app-muted-foreground: #b0bdb7;
+    --app-border: #2f443d;
+    --app-secondary: #172820;
+    --app-accent: #f08f54;
+    --app-primary: #54c7b8;
     --app-primary-foreground: #ffffff;
-    --app-sidebar: #111827;
-    --app-separator: #374151;
-    --app-fill: #243041;
-    --app-shadow-card: 0 1px 3px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.15);
-    --app-shadow-float: 0 4px 16px rgb(0 0 0 / 0.3), 0 1px 4px rgb(0 0 0 / 0.2);
+    --app-sidebar: #101916;
+    --app-separator: #2f443d;
+    --app-fill: #20322d;
+    --app-shadow-card: 0 8px 20px rgb(0 0 0 / 0.26), 0 1px 4px rgb(0 0 0 / 0.18);
+    --app-shadow-float: 0 16px 38px rgb(0 0 0 / 0.38), 0 2px 10px rgb(0 0 0 / 0.2);
   }
 }
 

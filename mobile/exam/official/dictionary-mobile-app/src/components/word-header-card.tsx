@@ -2,7 +2,7 @@ import { AppText } from "@/components/app-text";
 import { PronunciationControls } from "@/components/pronunciation-controls";
 import type { PronunciationAudio } from "@/utils/dictionary-format";
 import { LAYOUT } from "@/utils/layout";
-import { cardSurface } from "@/utils/themed-styles";
+import { heroSurface, primarySoftSurface } from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import { View } from "react-native";
 
@@ -26,35 +26,68 @@ export function WordHeaderCard({
 
   return (
     <View
-      className="rounded-[12px]"
+      className="rounded-[22px] overflow-hidden"
       style={{
-        ...cardSurface(colors),
-        padding: LAYOUT.heroCardPadding,
-        gap: 8,
+        ...heroSurface(colors),
       }}
       accessibilityRole="summary"
       accessibilityLabel={`${word}${phonetic ? `, ${phonetic}` : ""}`}
     >
-      <AppText variant="largeTitle" selectable>
-        {word}
-      </AppText>
+      <View
+        style={{
+          height: 5,
+          backgroundColor: colors.accent,
+        }}
+      />
 
-      {phonetic && (
-        <AppText variant="body" muted selectable>
-          {phonetic}
+      <View
+        style={{
+          padding: LAYOUT.heroCardPadding,
+          gap: 10,
+        }}
+      >
+        <AppText
+          variant="largeTitle"
+          selectable
+          style={{
+            fontSize: 40,
+            lineHeight: 48,
+            letterSpacing: 0,
+          }}
+        >
+          {word}
         </AppText>
-      )}
 
-      {hasAudio && (
-        <PronunciationControls
-          key={
-            pronunciationAudios.map((audio) => audio.url).join("|") || "no-audio"
-          }
-          audios={pronunciationAudios}
-          selectedIndex={selectedPronunciationIndex}
-          onSelectedIndexChange={onSelectedPronunciationIndexChange}
-        />
-      )}
+        {phonetic && (
+          <View
+            className="self-start rounded-full px-3 py-1"
+            style={primarySoftSurface(colors)}
+          >
+            <AppText
+              variant="subhead"
+              tone="primary"
+              selectable
+              className="font-semibold"
+            >
+              {phonetic}
+            </AppText>
+          </View>
+        )}
+
+        {hasAudio && (
+          <View style={{ paddingTop: 4 }}>
+            <PronunciationControls
+              key={
+                pronunciationAudios.map((audio) => audio.url).join("|") ||
+                "no-audio"
+              }
+              audios={pronunciationAudios}
+              selectedIndex={selectedPronunciationIndex}
+              onSelectedIndexChange={onSelectedPronunciationIndexChange}
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 }

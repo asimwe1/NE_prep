@@ -4,8 +4,8 @@ import type { PronunciationAudio } from "@/utils/dictionary-format";
 import { usePronunciationPlayback } from "@/utils/use-pronunciation-playback";
 import {
   cardSurface,
-  fillSurface,
   primarySurface,
+  primarySoftSurface,
 } from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import { minTouchTargetStyle } from "@/utils/touch-target";
@@ -61,7 +61,7 @@ export function PronunciationControls({
         className="rounded-full items-center justify-center active:opacity-80 disabled:opacity-50"
         style={{
           ...minTouchTargetStyle(40, 40),
-          ...(isPlaying ? primarySurface(colors) : fillSurface(colors)),
+          ...(isPlaying ? primarySurface(colors) : primarySoftSurface(colors)),
         }}
       >
         {isPlaying ? (
@@ -69,7 +69,7 @@ export function PronunciationControls({
         ) : (
           <Volume2
             size={18}
-            color={colors.foreground}
+            color={colors.primarySoftForeground}
             {...getDecorativeIconA11yProps()}
           />
         )}
@@ -92,6 +92,7 @@ export function PronunciationControls({
               style={{
                 ...minTouchTargetStyle(0, 32),
                 ...(isSelected ? primarySurface(colors) : cardSurface(colors)),
+                borderColor: isSelected ? colors.primary : colors.separator,
               }}
             >
               <AppText

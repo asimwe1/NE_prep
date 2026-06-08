@@ -119,3 +119,12 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Reworked search feedback copy so users see clear titles, messages, and hints instead of technical “could not load result” wording.
 - Parse Dictionary API 404 `title`, `message`, and `resolution` fields for not-found searches.
 - Added `search-feedback.ts` and context-aware feedback icons for validation, not-found, network, and service states.
+
+## 2026-06-08 12:57 - asimwe001
+
+- Audited the actual style/component files against the LookUp design guardrails instead of relying on `design.md`.
+- Upgraded shared web/iOS/Android theme tokens to a stronger dictionary UI palette with explicit native colors for Android.
+- Added visible native surface depth, stronger search styling, a warmer word hero card, accent part-of-speech chips, and polished pronunciation controls.
+- Fixed malformed example quote rendering and restyled examples as inset quote blocks.
+- Removed the obsolete `pronunciation-button.tsx` file after confirming current code uses `pronunciation-controls.tsx`.
+- Verified with `npm run lint` and `npx tsc --noEmit`.

@@ -155,7 +155,7 @@ export default function HomeScreen() {
           >
             {isLoading && (
               <View
-                className="items-center justify-center rounded-[12px] py-12"
+                className="items-center justify-center rounded-[18px] py-12"
                 style={{ ...cardSurface(colors), gap: 12 }}
                 accessibilityRole="progressbar"
                 accessibilityLabel="Searching dictionary"

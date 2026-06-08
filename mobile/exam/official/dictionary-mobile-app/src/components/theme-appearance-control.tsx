@@ -44,7 +44,7 @@ export function ThemeAppearanceControl() {
       </AppText>
 
       <View
-        className="rounded-[10px] p-1 flex-row"
+        className="rounded-[14px] p-1 flex-row"
         style={fillSurface(colors)}
         accessibilityRole="radiogroup"
         accessibilityLabel="Appearance"
@@ -59,7 +59,7 @@ export function ThemeAppearanceControl() {
               accessibilityRole="radio"
               accessibilityLabel={option.accessibilityLabel}
               accessibilityState={{ selected: isSelected }}
-              className="flex-1 rounded-[8px] items-center justify-center active:opacity-80"
+              className="flex-1 rounded-[11px] items-center justify-center active:opacity-80"
               style={{
                 ...minTouchTargetStyle(),
                 paddingVertical: 10,

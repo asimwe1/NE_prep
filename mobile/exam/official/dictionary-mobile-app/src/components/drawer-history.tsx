@@ -115,7 +115,7 @@ export function DrawerHistory({
               style={{
                 ...hairlineBorder(colors.separator),
                 borderBottomWidth: StyleSheet.hairlineWidth,
-                backgroundColor: colors.background,
+                backgroundColor: colors.cardStrong,
               }}
             >
               <View className="flex-1 pr-3">
@@ -143,7 +143,7 @@ export function DrawerHistory({
               nestedScrollEnabled
             >
               {history.length === 0 ? (
-                <View className="rounded-[12px] p-4 gap-1" style={cardSurface(colors)}>
+                <View className="rounded-[18px] p-4 gap-1" style={cardSurface(colors)}>
                   <AppText variant="headline">No searches yet</AppText>
                   <AppText variant="subhead" muted>
                     Successful searches will appear here.
@@ -158,7 +158,7 @@ export function DrawerHistory({
                     accessibilityRole="button"
                     accessibilityLabel={`Search ${word}`}
                     accessibilityState={{ disabled: isLoading }}
-                    className="rounded-[10px] px-4 active:opacity-80 disabled:opacity-50"
+                    className="rounded-[14px] px-4 active:opacity-80 disabled:opacity-50"
                     style={{
                       ...minTouchTargetStyle(),
                       ...cardSurface(colors),
@@ -179,7 +179,7 @@ export function DrawerHistory({
               style={{
                 ...hairlineBorder(colors.separator),
                 borderTopWidth: StyleSheet.hairlineWidth,
-                backgroundColor: colors.background,
+                backgroundColor: colors.cardStrong,
               }}
             >
               <ThemeAppearanceControl />

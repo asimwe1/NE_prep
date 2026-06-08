@@ -1,7 +1,7 @@
 import type { DictionaryMeaning } from "@/types/dictionary";
 import { DefinitionCard } from "@/components/definition-card";
 import { AppText } from "@/components/app-text";
-import { cardSurface } from "@/utils/themed-styles";
+import { cardSurface, primarySoftSurface } from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import { View } from "react-native";
 
@@ -14,16 +14,24 @@ export function MeaningSection({ meaning }: MeaningSectionProps) {
   const partOfSpeech = meaning.partOfSpeech || "meaning";
 
   return (
-    <View style={{ gap: 8 }} accessibilityLabel={`${partOfSpeech} meanings`}>
-      <AppText
-        variant="footnote"
-        muted
-        className="uppercase tracking-wide font-semibold px-1"
-      >
-        {partOfSpeech}
-      </AppText>
+    <View style={{ gap: 10 }} accessibilityLabel={`${partOfSpeech} meanings`}>
+      <View className="flex-row items-center" style={{ gap: 8 }}>
+        <View
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: colors.accent }}
+        />
+        <View className="rounded-full px-3 py-1" style={primarySoftSurface(colors)}>
+          <AppText
+            variant="footnote"
+            tone="primary"
+            className="uppercase tracking-wide font-semibold"
+          >
+            {partOfSpeech}
+          </AppText>
+        </View>
+      </View>
 
-      <View className="rounded-[12px] p-3" style={{ ...cardSurface(colors), gap: 10 }}>
+      <View className="rounded-[18px] p-4" style={{ ...cardSurface(colors), gap: 12 }}>
         {meaning.definitions.map((definition, index) => (
           <DefinitionCard
             key={`${definition.definition}-${index}`}

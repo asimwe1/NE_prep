@@ -8,6 +8,6 @@ export const LAYOUT = {
   definitionColumnMaxWidth: 560,
   sectionGap: 16,
   meaningSectionGap: 24,
-  cardRadius: 12,
-  heroCardPadding: 20,
+  cardRadius: 18,
+  heroCardPadding: 24,
 } as const;

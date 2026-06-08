@@ -27,8 +27,8 @@ export function SearchSection({
         alignSelf: "stretch",
         paddingHorizontal: horizontalPadding,
         paddingTop: 12,
-        paddingBottom: 12,
-        backgroundColor: colors.background,
+        paddingBottom: 14,
+        backgroundColor: colors.cardStrong,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: colors.separator,
       }}

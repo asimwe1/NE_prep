@@ -1,7 +1,7 @@
 import { AppText } from "@/components/app-text";
 import { getDecorativeIconA11yProps } from "@/utils/decorative-icon-a11y";
 import type { SearchFeedback } from "@/utils/search-feedback";
-import { cardSurface, fillSurface } from "@/utils/themed-styles";
+import { cardSurface, primarySoftSurface } from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import { CircleAlert, Search, SearchX, WifiOff } from "lucide-react-native";
 import { View } from "react-native";
@@ -29,7 +29,7 @@ export function ErrorState({ kind, title, message, hint }: ErrorStateProps) {
 
   return (
     <View
-      className="rounded-[12px] p-5"
+      className="rounded-[18px] p-5"
       style={{ ...cardSurface(colors), gap: 12 }}
       accessibilityRole={isNetwork || isService ? "alert" : "text"}
       accessibilityLiveRegion={isNetwork || isService ? "polite" : undefined}
@@ -37,7 +37,7 @@ export function ErrorState({ kind, title, message, hint }: ErrorStateProps) {
     >
       <View
         className="w-11 h-11 rounded-full items-center justify-center"
-        style={fillSurface(colors)}
+        style={primarySoftSurface(colors)}
       >
         <Icon size={20} color={iconColor} {...getDecorativeIconA11yProps()} />
       </View>

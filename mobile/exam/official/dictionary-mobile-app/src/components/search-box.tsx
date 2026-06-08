@@ -1,6 +1,6 @@
 import { getDecorativeIconA11yProps } from "@/utils/decorative-icon-a11y";
 import { IOS_MIN_TOUCH_TARGET } from "@/utils/ios-design";
-import { fillSurface, primarySurface } from "@/utils/themed-styles";
+import { cardSurface, primarySurface } from "@/utils/themed-styles";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import { Search } from "lucide-react-native";
 import { ActivityIndicator, Platform, Pressable, TextInput, View } from "react-native";
@@ -22,11 +22,12 @@ export function SearchBox({
 
   return (
     <View
-      className="rounded-[12px] flex-row items-center overflow-hidden"
+      className="rounded-[18px] flex-row items-center overflow-hidden"
       style={{
-        ...fillSurface(colors),
-        minHeight: IOS_MIN_TOUCH_TARGET,
+        ...cardSurface(colors),
+        minHeight: 56,
         paddingLeft: 14,
+        paddingRight: 6,
       }}
       accessibilityRole="search"
     >
@@ -58,7 +59,7 @@ export function SearchBox({
         selectionColor={colors.primary}
         style={{
           flex: 1,
-          minHeight: IOS_MIN_TOUCH_TARGET,
+          minHeight: 56,
           paddingHorizontal: 10,
           paddingVertical: Platform.OS === "ios" ? 11 : 10,
           color: colors.foreground,
@@ -74,12 +75,12 @@ export function SearchBox({
         accessibilityLabel="Search word"
         accessibilityHint="Looks up the entered word in the dictionary"
         accessibilityState={{ disabled: isLoading, busy: isLoading }}
-        className="items-center justify-center active:opacity-80 disabled:opacity-50"
+        className="rounded-[14px] items-center justify-center active:opacity-80 disabled:opacity-50"
         style={{
           ...primarySurface(colors),
-          minWidth: 72,
+          minWidth: 48,
           minHeight: IOS_MIN_TOUCH_TARGET,
-          paddingHorizontal: 16,
+          paddingHorizontal: 14,
         }}
       >
         {isLoading ? (
