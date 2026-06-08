@@ -1,4 +1,5 @@
 import "@/global.css";
+import { ThemePreferenceProvider, useThemePreference } from "@/components/theme-preference-provider";
 import {
   DarkTheme,
   DefaultTheme,
@@ -6,31 +7,32 @@ import {
 } from "expo-router/react-navigation";
 import { Stack } from "expo-router/stack";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "react-native";
 import { SafeAreaListener } from "react-native-safe-area-context";
 import { Uniwind } from "uniwind";
 
-function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const colorScheme = useColorScheme();
+function NavigationThemeBridge({ children }: { children: React.ReactNode }) {
+  const { resolvedScheme } = useThemePreference();
 
   return (
     <NavigationThemeProvider
-      value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+      value={resolvedScheme === "dark" ? DarkTheme : DefaultTheme}
     >
       <SafeAreaListener onChange={({ insets }) => Uniwind.updateInsets(insets)}>
         {children}
       </SafeAreaListener>
+      <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
     </NavigationThemeProvider>
   );
 }
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ThemePreferenceProvider>
+      <NavigationThemeBridge>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+        </Stack>
+      </NavigationThemeBridge>
+    </ThemePreferenceProvider>
   );
 }
