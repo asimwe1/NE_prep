@@ -128,3 +128,12 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Fixed malformed example quote rendering and restyled examples as inset quote blocks.
 - Removed the obsolete `pronunciation-button.tsx` file after confirming current code uses `pronunciation-controls.tsx`.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:05 - asimwe001
+
+- Replaced the platform Alert/ActionSheet appearance picker with a themed in-app `ThemePickerModal`.
+- Made the header appearance button functional on web and iOS with visible `Automatic`, `Light`, and `Dark` choices.
+- Styled the Android settings popup as a Lexi-themed modal with native-safe surfaces, touch targets, and selected-state feedback for BlueStacks.
+- Updated the header button icon to reflect the active appearance mode (`Automatic`, `Light`, or `Dark`).
+- Removed the obsolete `theme-picker.ts` utility.
+- Verified with `npm run lint` and `npx tsc --noEmit`.
