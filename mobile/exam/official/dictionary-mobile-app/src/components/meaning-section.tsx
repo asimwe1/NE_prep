@@ -7,11 +7,21 @@ import { View } from "react-native";
 
 type MeaningSectionProps = {
   meaning: DictionaryMeaning;
+  definitionLimit?: number;
 };
 
-export function MeaningSection({ meaning }: MeaningSectionProps) {
+export function MeaningSection({
+  meaning,
+  definitionLimit,
+}: MeaningSectionProps) {
   const colors = useThemeColors();
   const partOfSpeech = meaning.partOfSpeech || "meaning";
+  const visibleDefinitions =
+    typeof definitionLimit === "number"
+      ? meaning.definitions.slice(0, definitionLimit)
+      : meaning.definitions;
+  const hiddenDefinitionCount =
+    meaning.definitions.length - visibleDefinitions.length;
 
   return (
     <View style={{ gap: 10 }} accessibilityLabel={`${partOfSpeech} meanings`}>
@@ -32,14 +42,21 @@ export function MeaningSection({ meaning }: MeaningSectionProps) {
       </View>
 
       <View className="rounded-[18px] p-4" style={{ ...cardSurface(colors), gap: 12 }}>
-        {meaning.definitions.map((definition, index) => (
+        {visibleDefinitions.map((definition, index) => (
           <DefinitionCard
             key={`${definition.definition}-${index}`}
             definition={definition}
             index={index}
-            isLast={index === meaning.definitions.length - 1}
+            isLast={index === visibleDefinitions.length - 1}
           />
         ))}
+
+        {hiddenDefinitionCount > 0 && (
+          <AppText variant="footnote" muted className="pl-9">
+            {hiddenDefinitionCount} more definition
+            {hiddenDefinitionCount === 1 ? "" : "s"} available below
+          </AppText>
+        )}
       </View>
     </View>
   );

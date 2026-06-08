@@ -137,3 +137,11 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Updated the header button icon to reflect the active appearance mode (`Automatic`, `Light`, or `Dark`).
 - Removed the obsolete `theme-picker.ts` utility.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:10 - asimwe001
+
+- Limited long dictionary results to a concise preview by default: first two meaning groups and first two definitions per group.
+- Added a styled `Show all meanings` / `Show less` control so users can expand long words only when needed.
+- Removed user-facing `Entry 1`, `Entry 2`, etc. labels from results and flattened API entries into readable meaning groups.
+- Added subtle hidden-definition counts inside previewed meaning cards.
+- Verified with `npm run lint` and `npx tsc --noEmit`.
