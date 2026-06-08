@@ -145,3 +145,11 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 - Removed user-facing `Entry 1`, `Entry 2`, etc. labels from results and flattened API entries into readable meaning groups.
 - Added subtle hidden-definition counts inside previewed meaning cards.
 - Verified with `npm run lint` and `npx tsc --noEmit`.
+
+## 2026-06-08 13:15 - asimwe001
+
+- Upgraded search history from plain words to cached items with word, short meaning summary, full API entries, and search timestamp.
+- Persisted search history through AsyncStorage so previous successful searches can be reopened without internet.
+- Added offline fallback for manual searches when a cached word exists and the network request fails.
+- Updated the history drawer to show each word, one subtle meaning preview, and relative time such as `3 sec ago`, `1 min ago`, or `2 days ago`.
+- Verified with `npm run lint` and `npx tsc --noEmit`.

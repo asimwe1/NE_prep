@@ -1,5 +1,9 @@
 import { AppText } from "@/components/app-text";
 import { ThemeAppearanceControl } from "@/components/theme-appearance-control";
+import {
+  getRelativeSearchTime,
+  type SearchHistoryItem,
+} from "@/utils/history";
 import { useThemeColors } from "@/utils/use-theme-colors";
 import {
   androidElevation,
@@ -25,11 +29,11 @@ const DRAWER_SLIDE_OFFSET = -360;
 const OPEN_DURATION_MS = 280;
 
 type DrawerHistoryProps = {
-  history: string[];
+  history: SearchHistoryItem[];
   isVisible: boolean;
   isLoading: boolean;
   onClose: () => void;
-  onSelectWord: (word: string) => void;
+  onSelectWord: (item: SearchHistoryItem) => void;
 };
 
 export function DrawerHistory({
@@ -45,6 +49,7 @@ export function DrawerHistory({
     [],
   );
   const backdropOpacity = React.useMemo(() => new Animated.Value(0), []);
+  const [now, setNow] = React.useState(0);
 
   React.useEffect(() => {
     if (!isVisible) {
@@ -69,6 +74,20 @@ export function DrawerHistory({
       }),
     ]).start();
   }, [isVisible, translateX, backdropOpacity]);
+
+  React.useEffect(() => {
+    if (!isVisible) {
+      return undefined;
+    }
+
+    const refreshId = setTimeout(() => setNow(Date.now()), 0);
+    const intervalId = setInterval(() => setNow(Date.now()), 30_000);
+
+    return () => {
+      clearTimeout(refreshId);
+      clearInterval(intervalId);
+    };
+  }, [isVisible]);
 
   if (!isVisible) {
     return null;
@@ -150,25 +169,45 @@ export function DrawerHistory({
                   </AppText>
                 </View>
               ) : (
-                history.map((word) => (
+                history.map((item) => (
                   <Pressable
-                    key={word.toLowerCase()}
+                    key={item.normalizedWord}
                     disabled={isLoading}
-                    onPress={() => onSelectWord(word)}
+                    onPress={() => onSelectWord(item)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Search ${word}`}
+                    accessibilityLabel={`${item.word}. ${item.summary}. Searched ${getRelativeSearchTime(item.searchedAt, now || item.searchedAt)}`}
                     accessibilityState={{ disabled: isLoading }}
                     className="rounded-[14px] px-4 active:opacity-80 disabled:opacity-50"
                     style={{
                       ...minTouchTargetStyle(),
                       ...cardSurface(colors),
-                      paddingVertical: 10,
-                      marginBottom: 8,
+                      paddingVertical: 12,
+                      marginBottom: 10,
                     }}
                   >
-                    <AppText variant="body" className="font-medium">
-                      {word}
-                    </AppText>
+                    <View className="flex-row items-start justify-between" style={{ gap: 10 }}>
+                      <View className="flex-1">
+                        <AppText variant="body" className="font-semibold">
+                          {item.word}
+                        </AppText>
+                        <AppText
+                          variant="footnote"
+                          muted
+                          numberOfLines={2}
+                          className="mt-1"
+                        >
+                          {item.summary}
+                        </AppText>
+                      </View>
+                      <AppText
+                        variant="caption"
+                        muted
+                        allowFontScaling={false}
+                        className="pt-0.5"
+                      >
+                        {getRelativeSearchTime(item.searchedAt, now || item.searchedAt)}
+                      </AppText>
+                    </View>
                   </Pressable>
                 ))
               )}

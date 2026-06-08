@@ -6,13 +6,19 @@ import { ErrorState } from "@/components/error-state";
 import { SearchSection } from "@/components/search-section";
 import { WordResults } from "@/components/word-results";
 import { useThemeColors } from "@/utils/use-theme-colors";
-import { searchWord } from "@/services/dictionary-api";
+import { DictionaryNetworkError, searchWord } from "@/services/dictionary-api";
 import type { DictionaryEntry } from "@/types/dictionary";
 import {
   findPronunciationAudios,
   getDisplayPhonetic,
 } from "@/utils/dictionary-format";
-import { updateSearchHistory } from "@/utils/history";
+import {
+  findCachedHistoryItem,
+  loadSearchHistory,
+  saveSearchHistory,
+  updateSearchHistory,
+  type SearchHistoryItem,
+} from "@/utils/history";
 import { LAYOUT } from "@/utils/layout";
 import {
   EMPTY_SEARCH_FEEDBACK,
@@ -41,7 +47,7 @@ export default function HomeScreen() {
   const [hasSearched, setHasSearched] = React.useState(false);
   const [selectedPronunciationIndex, setSelectedPronunciationIndex] =
     React.useState(0);
-  const [history, setHistory] = React.useState<string[]>([]);
+  const [history, setHistory] = React.useState<SearchHistoryItem[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
 
   const primaryEntry = entries[0];
@@ -53,6 +59,31 @@ export default function HomeScreen() {
   const phonetic =
     selectedPronunciation?.phoneticText ??
     (primaryEntry ? getDisplayPhonetic(primaryEntry) : null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    loadSearchHistory().then((storedHistory) => {
+      if (isMounted) {
+        setHistory(storedHistory);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const applyHistoryUpdate = React.useCallback(
+    (updater: (currentHistory: SearchHistoryItem[]) => SearchHistoryItem[]) => {
+      setHistory((currentHistory) => {
+        const nextHistory = updater(currentHistory);
+        saveSearchHistory(nextHistory).catch(() => undefined);
+        return nextHistory;
+      });
+    },
+    [],
+  );
 
   async function runSearch(rawWord: string) {
     const normalizedQuery = rawWord.trim().toLowerCase();
@@ -74,13 +105,34 @@ export default function HomeScreen() {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
       setSelectedPronunciationIndex(0);
-      setHistory((currentHistory) =>
+      applyHistoryUpdate((currentHistory) =>
         updateSearchHistory(
           currentHistory,
           result[0]?.word?.trim() || normalizedQuery,
+          result,
         ),
       );
     } catch (searchError) {
+      const cachedItem =
+        searchError instanceof DictionaryNetworkError
+          ? findCachedHistoryItem(history, normalizedQuery)
+          : null;
+
+      if (cachedItem) {
+        setEntries(cachedItem.entries);
+        setFeedback(null);
+        setSelectedPronunciationIndex(0);
+        setQuery(cachedItem.word);
+        applyHistoryUpdate((currentHistory) =>
+          updateSearchHistory(
+            currentHistory,
+            cachedItem.word,
+            cachedItem.entries,
+          ),
+        );
+        return;
+      }
+
       setEntries([]);
       setFeedback(getSearchFeedback(searchError, normalizedQuery));
       setSelectedPronunciationIndex(0);
@@ -96,12 +148,16 @@ export default function HomeScreen() {
     });
   }
 
-  function handleHistorySelect(word: string) {
+  function handleHistorySelect(item: SearchHistoryItem) {
     setIsHistoryOpen(false);
-    runSearch(word).catch(() => {
-      setFeedback(getSearchFeedback(new Error("search failed")));
-      setIsLoading(false);
-    });
+    setQuery(item.word);
+    setEntries(item.entries);
+    setFeedback(null);
+    setHasSearched(true);
+    setSelectedPronunciationIndex(0);
+    applyHistoryUpdate((currentHistory) =>
+      updateSearchHistory(currentHistory, item.word, item.entries),
+    );
   }
 
   return (
