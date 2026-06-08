@@ -6,10 +6,15 @@ import { Pressable, Text, View } from "react-native";
 
 type PronunciationButtonProps = {
   audios: PronunciationAudio[];
+  selectedIndex: number;
+  onSelectedIndexChange: (index: number) => void;
 };
 
-export function PronunciationButton({ audios }: PronunciationButtonProps) {
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
+export function PronunciationButton({
+  audios,
+  selectedIndex,
+  onSelectedIndexChange,
+}: PronunciationButtonProps) {
   const [failed, setFailed] = React.useState<string | null>(null);
   const currentAudio = audios[selectedIndex] ?? null;
   const currentUrl = currentAudio?.url ?? null;
@@ -19,14 +24,6 @@ export function PronunciationButton({ audios }: PronunciationButtonProps) {
   const isLoading = hasAudio && !status.isLoaded;
   const isPlaying = status.playing;
   const hasMultipleAudio = audios.length > 1;
-
-  React.useEffect(() => {
-    if (status.didJustFinish) {
-      player.seekTo(0).catch(() => {
-        setFailed("Pronunciation finished, but the player could not reset.");
-      });
-    }
-  }, [player, status.didJustFinish]);
 
   async function handlePlayPause() {
     if (!hasAudio) {
@@ -72,7 +69,7 @@ export function PronunciationButton({ audios }: PronunciationButtonProps) {
     try {
       player.pause();
       await player.seekTo(0);
-      setSelectedIndex(index);
+      onSelectedIndexChange(index);
     } catch {
       setFailed("The selected accent audio could not be loaded.");
     }

@@ -25,3 +25,9 @@ This file tracks project changes made during the official mobile exam build.
 - Derived accent labels from Dictionary API pronunciation audio filenames.
 - Replaced generic next-audio selection with selectable accent chips.
 - Preserved selected-accent playback controls for play, pause, and stop.
+
+## 2026-06-08 - asimwe001
+
+- Fixed pronunciation playback so audio plays once and waits for another user press instead of looping.
+- Lifted selected pronunciation accent state to the search screen.
+- Updated the displayed phonetic text to match the selected accent when the API provides accent-specific phonetics.

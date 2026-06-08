@@ -31,12 +31,18 @@ export default function HomeScreen() {
   const [error, setError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [hasSearched, setHasSearched] = React.useState(false);
+  const [selectedPronunciationIndex, setSelectedPronunciationIndex] =
+    React.useState(0);
 
   const primaryEntry = entries[0];
   const pronunciationAudios = primaryEntry
     ? findPronunciationAudios(primaryEntry)
     : [];
-  const phonetic = primaryEntry ? getDisplayPhonetic(primaryEntry) : null;
+  const selectedPronunciation =
+    pronunciationAudios[selectedPronunciationIndex] ?? null;
+  const phonetic =
+    selectedPronunciation?.phoneticText ??
+    (primaryEntry ? getDisplayPhonetic(primaryEntry) : null);
 
   async function handleSearch() {
     const normalizedQuery = query.trim().toLowerCase();
@@ -45,6 +51,7 @@ export default function HomeScreen() {
       setEntries([]);
       setError("Enter a word to see definitions and examples.");
       setHasSearched(true);
+      setSelectedPronunciationIndex(0);
       return;
     }
 
@@ -55,9 +62,11 @@ export default function HomeScreen() {
     try {
       const result = await searchWord(normalizedQuery);
       setEntries(result);
+      setSelectedPronunciationIndex(0);
     } catch (searchError) {
       setEntries([]);
       setError(getFriendlyError(searchError));
+      setSelectedPronunciationIndex(0);
     } finally {
       setIsLoading(false);
     }
@@ -125,6 +134,8 @@ export default function HomeScreen() {
                 "no-audio"
               }
               audios={pronunciationAudios}
+              selectedIndex={selectedPronunciationIndex}
+              onSelectedIndexChange={setSelectedPronunciationIndex}
             />
           </View>
 
