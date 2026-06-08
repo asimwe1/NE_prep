@@ -5,7 +5,7 @@ import { PronunciationButton } from "@/components/pronunciation-button";
 import { SearchBox } from "@/components/search-box";
 import { DictionaryApiError, searchWord } from "@/services/dictionary-api";
 import type { DictionaryEntry } from "@/types/dictionary";
-import { findFirstAudioUrl, getDisplayPhonetic } from "@/utils/dictionary-format";
+import { findAudioUrls, getDisplayPhonetic } from "@/utils/dictionary-format";
 import { BookOpenText } from "lucide-react-native";
 import * as React from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
@@ -30,7 +30,7 @@ export default function HomeScreen() {
   const [hasSearched, setHasSearched] = React.useState(false);
 
   const primaryEntry = entries[0];
-  const audioUrl = primaryEntry ? findFirstAudioUrl(primaryEntry) : null;
+  const audioUrls = primaryEntry ? findAudioUrls(primaryEntry) : [];
   const phonetic = primaryEntry ? getDisplayPhonetic(primaryEntry) : null;
 
   async function handleSearch() {
@@ -114,7 +114,10 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {audioUrl && <PronunciationButton audioUrl={audioUrl} />}
+            <PronunciationButton
+              key={audioUrls.join("|") || "no-audio"}
+              audioUrls={audioUrls}
+            />
           </View>
 
           {entries.map((entry, entryIndex) => (

@@ -39,7 +39,8 @@
       "expo-image",
       "expo-web-browser",
       "expo-system-ui",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

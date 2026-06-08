@@ -37,11 +37,11 @@ Use this checklist with `design.md`.
 
 - [x] Check whether an audio pronunciation URL exists in the API response.
 - [x] Display a pronunciation/speaker control when audio exists.
-- [ ] Load the audio file from the provided URL inside the app.
-- [ ] Play the audio when the user taps the pronunciation icon.
-- [ ] Handle cases where multiple audio pronunciations are provided.
+- [x] Load the audio file from the provided URL inside the app.
+- [x] Play the audio when the user taps the pronunciation icon.
+- [x] Handle cases where multiple audio pronunciations are provided.
 - [x] Disable or hide the audio button if no pronunciation is provided.
-- [ ] Manage audio playback state: play, pause, and stop.
+- [x] Manage audio playback state: play, pause, and stop.
 
 ## Activity 4: Drawer Navigation and Search History
 
@@ -77,7 +77,7 @@ Use this checklist with `design.md`.
 
 ## Next Implementation Phase
 
-- [ ] Replace temporary pronunciation URL opening with in-app audio playback.
+- [x] Replace temporary pronunciation URL opening with in-app audio playback.
 - [ ] Add drawer navigation and search history.
 - [ ] Improve result rendering for synonyms, antonyms, and multiple audio sources.
 - [ ] Add final UX polish after feature completion.

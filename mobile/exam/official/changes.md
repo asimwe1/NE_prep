@@ -10,3 +10,11 @@ This file tracks project changes made during the official mobile exam build.
 - Added tracked exam planning docs: `design.md`, `tasks.md`, and `changes.md`.
 - Added mobile `.gitignore` rules so local `AGENTS.md`, `.agents/`, and `.claude/` files are not tracked.
 - Confirmed the app is running locally on port `8082` per user report.
+
+## 2026-06-08 - asimwe001
+
+- Completed Activity 3 pronunciation audio requirements.
+- Added `expo-audio` for in-app pronunciation playback.
+- Replaced external audio URL opening with play, pause, stop, loading, and reset behavior.
+- Added support for multiple pronunciation audio URLs with a next-audio control.
+- Updated `tasks.md` to mark Activity 3 audio requirements complete.

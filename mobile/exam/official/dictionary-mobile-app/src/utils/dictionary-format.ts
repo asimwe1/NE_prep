@@ -9,7 +9,10 @@ export function getDisplayPhonetic(entry: DictionaryEntry): string | null {
   return phonetic?.text ?? null;
 }
 
-export function findFirstAudioUrl(entry: DictionaryEntry): string | null {
-  const phonetic = entry.phonetics.find((item) => item.audio?.trim());
-  return phonetic?.audio ?? null;
+export function findAudioUrls(entry: DictionaryEntry): string[] {
+  const urls = entry.phonetics
+    .map((item) => item.audio?.trim())
+    .filter((audio): audio is string => Boolean(audio));
+
+  return Array.from(new Set(urls));
 }

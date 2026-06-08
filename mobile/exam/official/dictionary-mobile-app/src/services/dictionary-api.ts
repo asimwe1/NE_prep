@@ -1,5 +1,5 @@
 import type { DictionaryEntry } from "@/types/dictionary";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 
 const BASE_URL = "https://api.dictionaryapi.dev/api/v2/entries/en";
 
@@ -18,7 +18,7 @@ export async function searchWord(word: string): Promise<DictionaryEntry[]> {
 
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status) {
+    if (isAxiosError(error) && error.response?.status) {
       throw new DictionaryApiError(error.response.status);
     }
 
