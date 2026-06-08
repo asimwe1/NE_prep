@@ -40,3 +40,9 @@ This file tracks project changes made during the official mobile exam build.
 - Added tap-to-search behavior from history items.
 - Improved Activity 5 error handling with explicit network and malformed-response messages.
 - Updated `tasks.md` to mark API integration, drawer history, axios usage, and offline feedback items complete.
+
+## 2026-06-08 - asimwe001
+
+- Added tracked `CODEBASE.md` maintainer guide.
+- Documented the application structure, state flow, API layer, audio logic, history drawer behavior, styling rules, and verification commands.
+- Documented change-tracking expectations for future implementation phases.
