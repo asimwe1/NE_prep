@@ -61,3 +61,61 @@ Use **`YYYY-MM-DD HH:MM`** (local time) on every entry so multiple phases on the
 
 - Fixed web console errors for decorative Lucide icons passing React Native-only accessibility props to the DOM.
 - Added `getDecorativeIconA11yProps()` to use `aria-hidden` on web and native accessibility props on iOS/Android.
+
+## 2026-06-08 13:00 - asimwe001
+
+- Unified web, iOS, and Android colors through `app-theme.ts` and matching hex tokens in `global.css`.
+- Replaced platform-specific iOS blue and Android blue button colors with the shared Lexi teal primary palette.
+- Kept iOS HIG behavior for typography and touch targets while syncing visual design across platforms.
+
+## 2026-06-08 15:20 - asimwe001
+
+- Collapsed search field and submit into a single inline bar: leading search icon, full-width input, teal submit button on the right end — no stacked button below.
+
+## 2026-06-08 15:00 - asimwe001
+
+- Pinned search field and submit button in a fixed zone directly under the app header so they stay full-width and above scrolling results.
+- Corrected hero card flow to large word, phonetic directly below, then speaker/accent row in the same card with tight vertical rhythm.
+- Replaced play-bar pronunciation UI with compact speaker button and accent chips via `pronunciation-controls.tsx`.
+
+## 2026-06-08 14:30 - asimwe001
+
+- Implemented LookUp layout specs: compact app header, hero word card, grouped POS definition stacks, and wide-screen two-column results.
+- Added `layout.ts`, `use-layout.ts`, `app-header`, `word-header-card`, `word-entries-list`, and `word-results` components.
+- Hid pronunciation controls when audio is unavailable; compact play button and accent chips in the word header card.
+
+## 2026-06-08 14:00 - asimwe001
+
+- Reworked `design.md` UI specification using LookUp: English Dictionary App (App Store id872564448) as the visual benchmark.
+- Documented search field placement, toolbar icon positions, word header card layout, definition grouping, drawer behavior, and cross-platform LookUp-aligned acceptance criteria.
+
+## 2026-06-08 13:45 - asimwe001
+
+- Fixed Android theme toggle crash by using shim-safe `SunMoon` and `Settings` icons with explicit JSX instead of dynamic Lucide imports.
+
+## 2026-06-08 13:35 - asimwe001
+
+- Fixed theme toggle crash by exporting `Monitor`, `Moon`, and `Sun` from the `lucide-react-native` shim.
+
+## 2026-06-08 13:20 - asimwe001
+
+- Added light, dark, and system appearance preference with persistence via AsyncStorage.
+- Placed a header toolbar theme button (iOS action sheet / Android alert) and a drawer footer segmented control for discoverability on all platforms.
+- Wired `ThemePreferenceProvider` and Uniwind `setTheme` so web, iOS, and Android stay in sync with the shared palette.
+
+## 2026-06-08 12:45 - asimwe001
+
+- Fixed Android/BlueStacks native rendering where Uniwind oklch backgrounds were transparent or missing.
+- Added `themed-styles.ts` with explicit hex surface colors, Android elevation, and hairline borders.
+- Made drawer history fully opaque with solid background and left-slide panel elevation.
+- Applied native `style` backgrounds and text colors across cards, search, results, and feedback states.
+
+## 2026-06-08 12:20 - asimwe001
+
+- Changed search history drawer animation to slide in from the left instead of using the default bottom sheet slide.
+
+## 2026-06-08 12:05 - asimwe001
+
+- Reworked search feedback copy so users see clear titles, messages, and hints instead of technical “could not load result” wording.
+- Parse Dictionary API 404 `title`, `message`, and `resolution` fields for not-found searches.
+- Added `search-feedback.ts` and context-aware feedback icons for validation, not-found, network, and service states.
