@@ -1,7 +1,6 @@
 package com.template.controller;
 
 import com.template.dto.*;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import com.template.service.TariffService;
@@ -33,7 +32,7 @@ public class TariffController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "[ADMIN] Create a new tariff")
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             content = @Content(
                     mediaType = "application/json",
@@ -134,7 +133,7 @@ public class TariffController {
     @PostMapping("/taxes")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "[ADMIN] Create a tax configuration")
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             content = @Content(
                     mediaType = "application/json",
@@ -180,7 +179,7 @@ public class TariffController {
     @PostMapping("/penalties")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "[ADMIN] Create a penalty configuration")
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             content = @Content(
                     mediaType = "application/json",

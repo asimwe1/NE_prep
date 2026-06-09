@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Lexi Dictionary",
+    "slug": "lexi-dictionary",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "lexidictionary",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": true,
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.lexitech.lexidictionary"
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false,
+      "package": "com.lexitech.lexidictionary"
+    },
+    "web": {
+      "output": "server"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#111827"
+          }
+        }
+      ],
+      "expo-asset",
+      "expo-font",
+      "expo-image",
+      "expo-web-browser",
+      "expo-system-ui",
+      "expo-status-bar",
+      "expo-audio"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {}
+    }
+  }
+}
