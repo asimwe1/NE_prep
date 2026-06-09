@@ -1,0 +1,3 @@
+[submodule "restfull/NE_restful_practical"]
+	path = restfull/NE_restful_practical
+	url = git@github.com:asimwe001/NE_restful_practical.git
