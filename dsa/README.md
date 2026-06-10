@@ -1,49 +1,64 @@
-# Road Construction Budgeting System
+# DSA Workspace Guide
 
-This project is a graph-based C++ console application for managing Rwanda cities, roads, and road budgets with two adjacency matrices:
+This folder is now organized by purpose first, then by topic.
 
-- `roadMatrix[i][j]` stores `1` when a road exists, otherwise `0`
-- `budgetMatrix[i][j]` stores the road budget, otherwise `0.0`
+## Where to start
 
-The graph is undirected, so each road and budget is stored symmetrically in both directions.
+- `01_notes/`: class notes, recap files, and theory PDFs.
+- `02_assessments/`: practicals, CATs, exam guides, group work, exercises, and mapped answer/reference files.
+- `03_examples/`: topic-based code examples.
+- `template/`: reusable starter files for exams, exercises, and group-work submissions.
 
-## Build
+## Topic map
 
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic main.cpp -o road_budget_system
-```
+- `03_examples/01_cpp_basics/`
+  Basic syntax, small console programs, ternary examples, guessing games, loops, and simple starter files.
 
-## Files
+- `03_examples/02_math_and_number_problems/`
+  Number exercises and formula-based programs such as factorial, palindrome, quadratic, quotient/remainder, primes, and temperature conversion.
 
-- `cities.txt` stores indexed city names
-- `roads.txt` stores unique roads and their budgets
+- `03_examples/03_arrays_and_strings/`
+  Arrays, string handling, insertion/deletion, min/max, frequency, uppercase conversion, and small sorting-by-comparison examples.
 
-## Mermaid Flowchart
+- `03_examples/04_pointers_functions_and_recursion/`
+  Pointers, function examples, recursive power, and recursion-related basics.
 
-```mermaid
-flowchart TD
-    A[Start] --> B[Initialize cities list, road matrix, budget matrix]
-    B --> C[Display menu]
-    C --> D[Read choice]
-    D --> E{Choice}
-    E -->|1| F[Add cities]
-    E -->|2| G[Add road]
-    E -->|3| H[Add road budget]
-    E -->|4| I[Edit city by index]
-    E -->|5| J[Search city by index]
-    E -->|6| K[Display cities]
-    E -->|7| L[Display road adjacency matrix]
-    E -->|8| M[Display cities, road matrix, budget matrix]
-    E -->|9| N[Save cities.txt and roads.txt]
-    E -->|Other| O[Show invalid choice]
-    F --> C
-    G --> C
-    H --> C
-    I --> C
-    J --> C
-    K --> C
-    L --> C
-    M --> C
-    O --> C
-    N --> P[End]
-```
+- `03_examples/05_searching_and_sorting/`
+  Linear search, binary search, recursive binary search, bubble sort, selection sort, and merge-sort-based student records.
+
+- `03_examples/06_structs_oop_and_file_io/`
+  Structs, namespaces, data types, writing/reading student records, and files that combine records with linked data.
+
+- `03_examples/07_linked_lists/`
+  Linked list initialization, insert at head, insert nodes, delete by position, delete middle, reverse, search, and sort.
+
+- `03_examples/08_stacks_and_queues/`
+  Stack implementation, queue operations, dequeue examples, and a generic queue version.
+
+- `03_examples/09_vectors_and_dynamic_collections/`
+  Vector-based student record programs and merge sort using `vector`.
+
+- `03_examples/10_graphs_and_matrices/`
+  Graph and matrix-style work.
+  Main file: `road_budget_manager_graph.cpp`
+
+- `03_examples/11_cat_prep/`
+  CAT preparation examples and related sample submission files.
+
+- `03_examples/12_sample_data/`
+  Small text/sample data files used by some examples.
+
+- `03_examples/99_archive/`
+  Old build artifacts, executables, and leftover repo metadata that are not study targets.
+
+## Quick find
+
+- Graphs: `03_examples/10_graphs_and_matrices/`
+- Vectors: `03_examples/09_vectors_and_dynamic_collections/`
+- Linked lists: `03_examples/07_linked_lists/`
+- Stacks and queues: `03_examples/08_stacks_and_queues/`
+- Searching and sorting: `03_examples/05_searching_and_sorting/`
+- Structs, OOP, and file handling: `03_examples/06_structs_oop_and_file_io/`
+- Notes and theory: `01_notes/`
+- Practicals and exams: `02_assessments/`
+- Reusable starter files: `template/`
