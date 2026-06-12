@@ -1,531 +1,296 @@
-#include <iostream>
-#include <vector>
-#include <string>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
-#include <cmath>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <vector>
 
 using namespace std;
 
-// -----------------------------------------------------------------------------
-// 1. StreamFile Class (Wrapper for File I/O)
-// -----------------------------------------------------------------------------
-class StreamFile {
+class RoadBudgetManager {
 private:
-    ifstream fin;    // For input
-    ofstream fout;   // For output
+    vector<string> cities;
+    vector<vector<int>> adjacency;
+    vector<vector<double>> budgets;
 
-public:
-    StreamFile() {}
+    void resizeMatrices(size_t newSize) {
+        for (size_t i = 0; i < adjacency.size(); ++i) {
+            adjacency[i].resize(newSize, 0);
+            budgets[i].resize(newSize, 0.0);
+        }
 
-    // Constructor to open a file for reading
-    StreamFile(const string& filename) : fin(filename) {}
-
-    // Constructor to open a file for writing
-    StreamFile(const string& filename, const string& mode) {
-        if (mode == "out" || mode == "a") fout.open(filename);
-        else if (mode == "in") fin.open(filename);
-    }
-
-    // Methods for Text-based format (reading/writing whitespace-separated values)
-    
-    // Read an integer
-    int readInt() {
-        int val = 0;
-        if (cin >> val) return val; // Simplified for demo using standard cin logic in this wrapper if needed, 
-                                    // but StreamFile is meant to be used with specific file objects.
-        // Since StreamFile uses file handles, we'll use stream manipulators on the file object.
-        // However, the snippet used 'cin' directly in 'readInt'. 
-        // Let's stick to the wrapper logic:
-        return val; 
-    }
-
-    // Corrected approach for StreamFile using file streams directly
-    int readIntStream() {
-        return 0; 
-    }
-    
-    // --- Corrected Implementation of StreamFile for this context ---
-    // This class handles standard file operations.
-    // Note: To keep it simple and robust like the previous snippet but correct:
-    // We will use a standard template for reading.
-    
-    int readFileInt() {
-        // Re-implementation of the logic:
-        // If it is a binary file, we use bin. If text, we use text.
-        // Given the snippet logic: "Assuming saved format" -> Binary was mentioned in the thought process.
-        // But the user prompt said "text-based format".
-        // I will implement a helper to read double/int.
-        return 0;
-    }
-
-    // To ensure the code actually compiles and works as intended based on the previous snippet:
-    // We will implement a simple wrapper around ifstream/ofstream.
-    void readInt(int* val) {
-        fin >> *val;
-    }
-    
-    int readInt() {
-        int val = 0;
-        fin >> val;
-        return val;
-    }
-
-    void writeInt(int val) {
-        fout << val;
-    }
-
-    void writeDouble(double val) {
-        fout << val;
-    }
-
-    void writeString(const string& str) {
-        fout << str;
-    }
-    
-    void writeVector(const vector<int>& v) {
-        for(int x : v) fout << x << " ";
-    }
-
-    void writeMatrix(const vector<vector<double>>& m) {
-        for(const auto& row : m) {
-            for(double val : row) fout << val << " ";
+        while (adjacency.size() < newSize) {
+            adjacency.push_back(vector<int>(newSize, 0));
+            budgets.push_back(vector<double>(newSize, 0.0));
         }
     }
 
-    // ... (The rest of the StreamFile logic would be similar to previous thought process,
-    // but I will focus on the Manager logic to be concise and robust)
-};
-
-// We will actually use a custom text-based format for files in the Manager to ensure it's simple:
-// Format: 
-// N (Number of cities)
-// CityName1 CityName2 ...
-// AdjMatrix (Double separated)
-// BudgetMatrix (Double separated)
-// (Note: For a real solution, we'd read the matrices, but for the demo we will hardcode reading 
-// the matrix if the file is generated, or assume the file structure matches).
-
-// Since the user's snippet used 'readInt' on a file stream, I will mimic that logic
-// but implement it correctly.
-
-// -----------------------------------------------------------------------------
-// 2. BudgetMatrixManager Class (Core Logic)
-// -----------------------------------------------------------------------------
-class BudgetMatrixManager {
-private:
-    int n; // Number of cities
-    vector<string> cityNames; // Names of cities (optional but good for debugging)
-    vector<vector<int>> adj;  // Adjacency matrix
-    vector<vector<double>> budget; // Budget matrix
+    bool validIndex(int index) const {
+        return index >= 1 && static_cast<size_t>(index) <= cities.size();
+    }
 
 public:
-    BudgetMatrixManager(int numCities) {
-        n = numCities;
-        adj.assign(n, vector<int>(n, 0));
-        budget.assign(n, vector<double>(n, 0.0));
-        // Initialize diagonal to infinity (for future Dijkstra/BFS logic)
-        // Though currently, we only care about the matrices.
-    }
-
-    void registerCity(const string& name) {
-        int idx = n++;
-        cityNames.push_back(name);
-        // Resize matrices if necessary
-        if (adj.size() < n) {
-            adj.resize(n, vector<int>(n, 0));
-            budget.resize(n, vector<double>(n, 0.0));
-        }
-    }
-
-    // Sets a road from 'u' to 'v' with 'cost'.
-    // Enforces symmetry.
-    // If mandatory is true, sets value to 1 (connection exists).
-    // Note: If the input cost is -1 (special value), we treat it as "no cost" or "mandatory"?
-    // Based on the prompt "meeting kigali - huye intercection is 1", I will ensure adj is 1.
-    // Usually -1 means "no connection" in some graph algos, but here the prompt says "intercection is 1".
-    // I will assume -1 means "connection is guaranteed" in this specific context or "unweighted".
-    void setRoad(int u, int v, double cost, bool mandatory = false) {
-        // Validate indices
-        if (u < 0 || u >= n || v < 0 || v >= n) {
-            cerr << "Error: Invalid city indices." << endl;
+    void loadDefaultCities() {
+        if (!cities.empty()) {
             return;
         }
 
-        // Logic for mandatory connection (Kigali-Huye)
-        // If mandatory is true, force adjacency to 1.
-        if (mandatory) {
-            adj[u][v] = 1;
-            budget[u][v] = cost;
-            adj[v][u] = 1; // Symmetry
-            budget[v][u] = cost; // Symmetry
-        } else {
-            // Normal setting
-            adj[u][v] = 1;
-            budget[u][v] = cost;
-        }
+        const string defaults[] = {
+            "Kigali", "Huye", "Muhanga", "Musanze",
+            "Nyagatare", "Rubavu", "Rusizi"
+        };
 
-        // Enforce Symmetry (User Constraint)
-        adj[v][u] = adj[u][v];
-        budget[v][u] = budget[u][v];
-    }
-
-    // Sets a specific road budget.
-    void setBudget(int u, int v, double b) {
-        if (u < 0 || u >= n || v < 0 || v >= n) return;
-        budget[u][v] = b;
-        budget[v][u] = b; // Symmetry
-    }
-
-    // Checks if two cities are directly connected
-    bool isConnected(int u, int v) const {
-        return adj[u][v] == 1;
-    }
-
-    // Save data to file (Text format: N, Name, Adj, Budget)
-    void saveToFile(const string& filename) {
-        ofstream fout(filename);
-        fout << n << endl; // Number of cities
-        // Write city names (optional, but good for reference)
-        for(const auto& name : cityNames) fout << name << " ";
-        fout << endl;
-        
-        // Write Adjacency Matrix
-        for(int i=0; i<n; ++i) {
-            for(int j=0; j<n; ++j) {
-                fout << adj[i][j] << " ";
-            }
-            fout << endl;
-        }
-        // Write Budget Matrix
-        for(int i=0; i<n; ++i) {
-            for(int j=0; j<n; ++j) {
-                fout << budget[i][j] << " ";
-            }
-            fout << endl;
+        for (const string &name : defaults) {
+            addCity(name);
         }
     }
 
-    // Load data from file
-    // Format expected: N, CityNames..., AdjMatrix..., BudgetMatrix...
-    bool loadFromFile(const string& filename) {
-        ifstream fin(filename);
-        if (!fin) {
-            cerr << "Error: Could not open file " << filename << endl;
+    void addCity(const string &name) {
+        cities.push_back(name);
+        resizeMatrices(cities.size());
+    }
+
+    void recordExistingRoads() {
+        if (cities.size() < 7) {
+            return;
+        }
+
+        setRoad(1, 3, 28.6);
+        setRoad(1, 4, 28.6);
+        setRoad(1, 5, 70.84);
+        setRoad(3, 2, 56.7);
+        setRoad(4, 6, 33.7);
+        setRoad(2, 7, 80.96);
+        setRoad(3, 7, 117.5);
+        setRoad(4, 5, 96.14);
+        setRoad(3, 4, 66.3);
+    }
+
+    bool setRoad(int firstCity, int secondCity, double budgetValue) {
+        if (!validIndex(firstCity) || !validIndex(secondCity) || firstCity == secondCity) {
             return false;
         }
 
-        string dummy;
-        if (!(fin >> dummy)) return false; // Expect N
-        
-        try {
-            n = stoi(dummy);
-        } catch (...) {
-            cerr << "Error parsing file size." << endl;
-            return false;
-        }
+        int from = firstCity - 1;
+        int to = secondCity - 1;
 
-        // Adjust internal arrays
-        if (adj.size() < n) {
-            adj.resize(n, vector<int>(n, 0));
-            budget.resize(n, vector<double>(n, 0.0));
-        }
-        
-        // Read City Names (if any) - for this demo, we skip reading names to keep it simple
-        // unless the user specifically wants them. Let's skip names to avoid parsing issues 
-        // if the input format is just numbers.
-        // But to match the logic of `registerCity`, we need to know indices.
-        // I will assume the user provides `adj` and `budget` directly.
-
-        // Read Adjacency Matrix
-        for(int i=0; i<n; ++i) {
-            for(int j=0; j<n; ++j) {
-                int val;
-                fin >> val;
-                adj[i][j] = val;
-            }
-        }
-
-        // Read Budget Matrix
-        for(int i=0; i<n; ++i) {
-            for(int j=0; j<n; ++j) {
-                double val;
-                fin >> val;
-                budget[i][j] = val;
-            }
-        }
-
+        adjacency[from][to] = 1;
+        adjacency[to][from] = 1;
+        budgets[from][to] = budgetValue;
+        budgets[to][from] = budgetValue;
         return true;
     }
 
-    // Debug Helper
-    void printMatrix(const char* label, const vector<vector<int>>& mat) {
-        cout << label << ":" << endl;
-        for(int i=0; i<mat.size(); ++i) {
-            for(int j=0; j<mat[0].size(); ++j) {
-                cout << mat[i][j] << " ";
+    bool modifyCity(int index, const string &newName) {
+        if (!validIndex(index)) {
+            return false;
+        }
+
+        cities[index - 1] = newName;
+        return true;
+    }
+
+    int searchCity(const string &name) const {
+        for (size_t i = 0; i < cities.size(); ++i) {
+            if (cities[i] == name) {
+                return static_cast<int>(i + 1);
             }
-            cout << endl;
+        }
+
+        return -1;
+    }
+
+    void displayCities() const {
+        cout << "\nCities\n";
+        cout << "------\n";
+        for (size_t i = 0; i < cities.size(); ++i) {
+            cout << setw(2) << (i + 1) << ". " << cities[i] << '\n';
         }
     }
-};
 
-// -----------------------------------------------------------------------------
-// 3. Main Function
-// -----------------------------------------------------------------------------
-int main() {
-    // Fixed: manager initialized once, not inside the loop
-    BudgetMatrixManager manager(0); 
-    
-    int choice;
-    string kigali, huye;
-    
-    // Set up default names if needed, but we'll let user input them via registerCity logic
-    // The prompt implies we know them: Kigali and Huye.
-    // Let's assume Kigali is 0 and Huye is 1 if we use registerCity.
+    void displayRoads() const {
+        cout << "\nRoads and Budgets\n";
+        cout << "-----------------\n";
 
-    while (cin >> choice) {
-        switch (choice) {
-            case 1: {
-                // Register a city
-                string name;
-                cout << "Enter City Name: ";
-                cin >> name;
-                manager.registerCity(name);
-                cout << "City registered." << endl;
-                break;
-            }
-            case 2: {
-                // Show matrix
-                manager.printMatrix("Adjacency", manager.adj);
-                break;
-            }
-            case 3: {
-                // Set road
-                int u, v;
-                double cost;
-                cout << "Set Road from ";
-                if (manager.adj.size() > 0) {
-                    cout << manager.cityNames[manager.adj.size()-1] << " to ";
-                    // Note: cityNames is updated dynamically.
-                    // Let's get names by index?
-                    // Let's just ask for indices to be safe.
-                    cout << "Index v: ";
+        int count = 1;
+        for (size_t i = 0; i < cities.size(); ++i) {
+            for (size_t j = i + 1; j < cities.size(); ++j) {
+                if (adjacency[i][j] == 1) {
+                    cout << setw(2) << count << ". "
+                         << cities[i] << " - " << cities[j]
+                         << " : " << fixed << setprecision(2) << budgets[i][j]
+                         << " Billion RWF\n";
+                    ++count;
                 }
-                cout << "Enter start index u: ";
-                cin >> u;
-                cout << "Enter end index v: (u != v) : ";
-                cin >> v;
-                cout << "Enter Cost: ";
-                cin >> cost;
-                manager.setRoad(u, v, cost, false);
-                cout << "Road set." <<
-</think>
-
-Here is the complete implementation with the logic you requested.
-
-This solution includes:
-1.  **`StreamFile`**: A helper class to manage file input/output streams easily, avoiding repeated stream extraction logic.
-2.  **`BudgetMatrixManager`**: The core class handling the city data. It reads the file, sets the adjacency matrix (enforcing symmetry), and handles the specific "Kigali-Huye" connection logic via the `setRoad` function.
-3.  **`main`**: A demonstration that creates the file structure you requested and verifies the read/write process.
-
-### Complete Code
-
-```cpp
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-
-// Helper class to manage file streams easily
-class StreamFile {
-private:
-    std::istream fin;
-    std::ostream fout;
-    bool isBinaryMode = false;
-
-    // Helper to convert stream extraction to a function style
-    template<typename T>
-    T readStreamValue() {
-        T val;
-        fin >> val;
-        return val;
-    }
-
-    template<typename T>
-    void writeStreamValue(const T& val) {
-        fout << val;
-    }
-
-public:
-    // Explicitly construct from file
-    StreamFile(const std::string& filename) : fin(filename), fout(filename) {}
-
-    // Use the helper methods directly in your classes
-    template<typename T>
-    T read(T& var) {
-        return readStreamValue(var);
-    }
-
-    template<typename T>
-    void write(const T& var) {
-        writeStreamValue(var);
-    }
-};
-
-// -----------------------------------------------------------------------------
-// 2. BudgetMatrixManager Class (Core Logic)
-// -----------------------------------------------------------------------------
-class BudgetMatrixManager {
-private:
-    int n; // Number of cities
-    std::vector<std::vector<int>> adj;  // Adjacency matrix (0 or 1)
-    std::vector<std::vector<double>> budget; // Budget matrix
-
-public:
-    BudgetMatrixManager(int numCities) {
-        n = numCities;
-        // Initialize vectors to avoid reallocations during input
-        adj.resize(n, std::vector<int>(n, 0));
-        budget.resize(n, std::vector<double>(n, 0.0));
-    }
-
-    // Sets a road from 'u' to 'v' with 'cost'.
-    // Enforces symmetry.
-    void setRoad(int u, int v, double cost, bool mandatory = false) {
-        // Validate indices
-        if (u < 0 || u >= n || v < 0 || v >= n) {
-            std::cerr << "Error: Invalid city indices." << std::endl;
-            return;
-        }
-
-        // Note: If the prompt implies a specific logic for 'Kigali-Huye' 
-        // being special (e.g., cost = 1), this function is designed to 
-        // simply set the cost. The symmetry is enforced regardless.
-        
-        adj[u][v] = 1;
-        adj[v][u] = 1; // Symmetry
-
-        // The prompt mentions "meeting kigali - huye intercection is 1".
-        // If mandatory is true, we prioritize setting it. 
-        // Assuming standard cost is passed in.
-        budget[u][v] = cost;
-        budget[v][u] = cost; // Symmetry
-    }
-
-    // Checks if two cities are directly connected
-    bool isConnected(int u, int v) const {
-        return adj[u][v] == 1;
-    }
-
-    // Save data to file (Text format: N, Adj, Budget)
-    void saveToFile(const std::string& filename) {
-        StreamFile sf(filename);
-        sf.write(n); // Write number of cities
-
-        // Write Adjacency Matrix
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                sf.write(adj[i][j]);
-                sf.write(" ");
-            }
-            sf.write("\n");
-        }
-
-        // Write Budget Matrix
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                sf.write(budget[i][j]);
-                sf.write(" ");
-            }
-            sf.write("\n");
-        }
-    }
-
-    // Load data from file
-    bool loadFromFile(const std::string& filename) {
-        StreamFile sf(filename);
-        int n_in;
-        sf.read(n_in);
-
-        // Adjust internal arrays if the file contains more cities than initially expected
-        if (adj.size() < n_in) {
-            adj.resize(n_in, std::vector<int>(n_in, 0));
-            budget.resize(n_in, std::vector<double>(n_in, 0.0));
-        } else if (adj.size() > n_in) {
-            // Truncate or reallocate if file size mismatches (simplified here)
-            adj.resize(n_in, std::vector<int>(n_in, 0));
-            budget.resize(n_in, std::vector<double>(n_in, 0.0));
-        }
-
-        n = n_in;
-
-        // Read Adjacency Matrix
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                sf.read(adj[i][j]);
             }
         }
 
-        // Read Budget Matrix
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                double val;
-                sf.read(val);
-                budget[i][j] = val;
+        if (count == 1) {
+            cout << "No roads recorded.\n";
+        }
+    }
+
+    void displayMatrices() const {
+        cout << "\nAdjacency Matrix\n";
+        cout << "----------------\n";
+        for (size_t i = 0; i < adjacency.size(); ++i) {
+            for (size_t j = 0; j < adjacency[i].size(); ++j) {
+                cout << adjacency[i][j] << ' ';
             }
+            cout << '\n';
+        }
+
+        cout << "\nBudget Matrix\n";
+        cout << "-------------\n";
+        for (size_t i = 0; i < budgets.size(); ++i) {
+            for (size_t j = 0; j < budgets[i].size(); ++j) {
+                cout << fixed << setprecision(2) << budgets[i][j] << ' ';
+            }
+            cout << '\n';
+        }
+    }
+
+    bool saveToFile(const string &fileName) const {
+        ofstream outFile(fileName.c_str());
+        if (!outFile) {
+            return false;
+        }
+
+        outFile << cities.size() << '\n';
+        for (size_t i = 0; i < cities.size(); ++i) {
+            outFile << (i + 1) << ',' << cities[i] << '\n';
+        }
+
+        outFile << "ADJACENCY\n";
+        for (size_t i = 0; i < adjacency.size(); ++i) {
+            for (size_t j = 0; j < adjacency[i].size(); ++j) {
+                outFile << adjacency[i][j];
+                if (j + 1 < adjacency[i].size()) {
+                    outFile << ' ';
+                }
+            }
+            outFile << '\n';
+        }
+
+        outFile << "BUDGETS\n";
+        for (size_t i = 0; i < budgets.size(); ++i) {
+            for (size_t j = 0; j < budgets[i].size(); ++j) {
+                outFile << fixed << setprecision(2) << budgets[i][j];
+                if (j + 1 < budgets[i].size()) {
+                    outFile << ' ';
+                }
+            }
+            outFile << '\n';
         }
 
         return true;
     }
-
-    // Helper to print the matrix for debugging
-    void printMatrix(const char* label, const std::vector<std::vector<double>>& mat) {
-        std::cout << label << ":" << std::endl;
-        for (int i = 0; i < mat.size(); ++i) {
-            for (int j = 0; j < mat[0].size(); ++j) {
-                std::cout << mat[i][j] << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
 };
 
-// -----------------------------------------------------------------------------
-// 3. Main Function
-// -----------------------------------------------------------------------------
 int main() {
-    // Create manager with 2 initial cities (0 and 1)
-    BudgetMatrixManager manager(2);
-    
-    // Let's manually set up the data based on the prompt's context
-    // Setting Kigali (0) -> Huye (1) with cost 1.0
-    // Huye -> Kigali also 1.0 (Symmetry)
-    manager.setRoad(0, 1, 1.0);
-    manager.setRoad(1, 0, 1.0);
+    RoadBudgetManager manager;
+    manager.loadDefaultCities();
+    manager.recordExistingRoads();
 
-    // Create a temporary file to test the I/O logic
-    std::string testFileName = "budget_data.txt";
+    const string dataFile = "road_budget_data.txt";
+    int choice = 0;
 
-    // Save to file
-    manager.saveToFile(testFileName);
+    do {
+        cout << "\nRoad Budget Manager\n";
+        cout << "-------------------\n";
+        cout << "1. Record existing cities\n";
+        cout << "2. Add new city\n";
+        cout << "3. Register road between cities\n";
+        cout << "4. Modify city details\n";
+        cout << "5. Search for a city\n";
+        cout << "6. Display cities\n";
+        cout << "7. Display roads\n";
+        cout << "8. Display recorded data on console\n";
+        cout << "9. Save data to file\n";
+        cout << "10. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-    // Print the matrix to verify structure (for debugging)
-    manager.printMatrix("Adjacency", manager.adj);
-    manager.printMatrix("Budget", manager.budget);
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
 
-    std::cout << "\n--- Loading data back from file ---\n" << std::endl;
+        if (choice == 1) {
+            manager.displayCities();
+        } else if (choice == 2) {
+            string cityName;
+            cout << "Enter new city name: ";
+            cin >> ws;
+            getline(cin, cityName);
+            manager.addCity(cityName);
+            cout << "City added successfully.\n";
+        } else if (choice == 3) {
+            int firstCity;
+            int secondCity;
+            double budgetValue;
 
-    // Load from file
-    manager.loadFromFile(testFileName);
+            manager.displayCities();
+            cout << "Enter first city index: ";
+            cin >> firstCity;
+            cout << "Enter second city index: ";
+            cin >> secondCity;
+            cout << "Enter road budget in Billion RWF: ";
+            cin >> budgetValue;
 
-    // Print again to verify data consistency after loading
-    manager.printMatrix("Adjacency", manager.adj);
-    manager.printMatrix("Budget", manager.budget);
+            if (manager.setRoad(firstCity, secondCity, budgetValue)) {
+                cout << "Road recorded successfully.\n";
+            } else {
+                cout << "Failed to record road. Check the indexes.\n";
+            }
+        } else if (choice == 4) {
+            int cityIndex;
+            string newName;
 
-    std::cout << "Test completed successfully." << std::endl;
+            manager.displayCities();
+            cout << "Enter city index to modify: ";
+            cin >> cityIndex;
+            cout << "Enter new city name: ";
+            cin >> ws;
+            getline(cin, newName);
+
+            if (manager.modifyCity(cityIndex, newName)) {
+                cout << "City updated successfully.\n";
+            } else {
+                cout << "Invalid city index.\n";
+            }
+        } else if (choice == 5) {
+            string cityName;
+            cout << "Enter city name to search: ";
+            cin >> ws;
+            getline(cin, cityName);
+
+            int cityIndex = manager.searchCity(cityName);
+            if (cityIndex == -1) {
+                cout << "City not found.\n";
+            } else {
+                cout << cityName << " is recorded with index " << cityIndex << ".\n";
+            }
+        } else if (choice == 6) {
+            manager.displayCities();
+        } else if (choice == 7) {
+            manager.displayRoads();
+        } else if (choice == 8) {
+            manager.displayCities();
+            manager.displayRoads();
+            manager.displayMatrices();
+        } else if (choice == 9) {
+            if (manager.saveToFile(dataFile)) {
+                cout << "Data saved to " << dataFile << ".\n";
+            } else {
+                cout << "Failed to save data.\n";
+            }
+        } else if (choice != 10) {
+            cout << "Invalid choice.\n";
+        }
+    } while (choice != 10);
 
     return 0;
 }

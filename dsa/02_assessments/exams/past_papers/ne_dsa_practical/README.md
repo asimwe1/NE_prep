@@ -7,17 +7,18 @@
 
 ## Submission
 
-- `submission/road_budget_manager_graph_answer.cpp`
-  Plausible answer for the city-road-budget practical.
+- `submission/smart_parking_management_answer.cpp`
+  Smart parking management answer aligned to the official Kigali public parking scenario.
 
 ## Why this answer fits
 
 The paper asks for a console application that can:
 
-- record cities
-- add new cities
-- register roads
-- manage budgets
-- search and display data
+- configure parking slots
+- register vehicle entry
+- calculate parking duration and fees
+- release slots on exit
+- keep transaction history
+- report available slots, parked vehicles, and daily revenue
 
-The provided submission file is the closest matching graph/matrix-based implementation currently available in the workspace.
+The provided submission file matches the smart parking practical pattern instead of the older road-budget example.
