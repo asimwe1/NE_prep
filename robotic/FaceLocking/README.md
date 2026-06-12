@@ -1,0 +1,254 @@
+# Face Locking Recognition System
+
+A real-time face recognition project for enrolling people, recognizing them from a camera, locking onto a selected face, logging face-lock actions, and optionally steering an ESP8266 or ESP32 servo camera over MQTT.
+
+The project is CPU-first. It works with the normal `onnxruntime` package, so people without GPUs do not need CUDA, cuDNN, or `onnxruntime-gpu`.
+
+## Project Layout
+
+- `src/enroll.py` - capture face samples and build the face database.
+- `src/recognize.py` - run local face recognition and face locking.
+- `src/rebuild_db.py` - rebuild `data/db/face_db.npz` from existing enrollment crops.
+- `addons/mqtt_servo_tracking/recognize_mqtt.py` - face locking plus MQTT movement/status publishing.
+- `addons/mqtt_servo_tracking/esp8266/face_tracker_servo/face_tracker_servo.ino` - ESP8266 servo firmware.
+- `addons/mqtt_servo_tracking/esp32/face_tracker_servo_esp32/face_tracker_servo_esp32.ino` - ESP32 servo firmware.
+- `dashboard/index.html` - static MQTT dashboard for live movement and lock status.
+- `logs/` - action history files created during face-lock sessions.
+
+## Requirements
+
+Use Python 3.10, 3.11, 3.12, or 3.13. Python 3.14 is not recommended because some computer-vision packages may not have wheels for it yet.
+
+Install dependencies from the repo root:
+
+```bash
+pip install -r requirements.txt
+```
+
+The included requirements use:
+
+```text
+onnxruntime
+```
+
+That is the CPU ONNX Runtime package. If only CPU ONNX Runtime is installed, the recognizer automatically uses `CPUExecutionProvider`.
+
+Required model files:
+
+- `models/embedder_arcface.onnx`
+- `models/face_landmarker.task`
+
+## Quick Start
+
+1. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Put the required model files in `models/`.
+
+3. Enroll a person:
+
+   ```bash
+   python -m src.enroll
+   ```
+
+   Controls:
+
+   - `SPACE` - capture one sample.
+   - `a` - toggle auto-capture.
+   - `s` - save enrollment to the database.
+   - `q` - quit.
+
+4. Rebuild the database if you already have crops in `data/enroll/`:
+
+   ```bash
+   python -m src.rebuild_db
+   ```
+
+5. Run local recognition:
+
+   ```bash
+   python -m src.recognize
+   ```
+
+   Controls:
+
+   - `+` or `=` - increase the recognition distance threshold.
+   - `-` - decrease the threshold.
+   - `r` - reload the face database.
+   - `d` - toggle debug overlay.
+   - `l` - lock or unlock the selected recognized face.
+   - `q` - quit.
+
+## CPU And GPU Notes
+
+For CPU-only users, keep `onnxruntime` in `requirements.txt`. No separate CPU-only Python files are needed.
+
+When the app starts, it checks ONNX Runtime providers. If only CPU is available, it selects CPU automatically. If GPU-capable ONNX Runtime packages are installed, it prompts for a provider and keeps CPU as a fallback.
+
+Optional GPU setups:
+
+- NVIDIA CUDA: use `onnxruntime-gpu` in a GPU-specific environment.
+- Windows DirectML: use `onnxruntime-directml` in a GPU-specific environment.
+
+Avoid installing multiple ONNX Runtime variants into the same environment unless you know they are compatible.
+
+## Face Locking
+
+During recognition, press `l` when a known face is selected. The app locks onto that identity, tracks movement, and records actions such as:
+
+- Face locked or unlocked.
+- Head moved left or right.
+- Smile or blink events detected from landmarks.
+- Face temporarily lost or reacquired.
+
+History files are written to `logs/` as:
+
+```text
+[Name]_history_[timestamp].txt
+```
+
+Example line:
+
+```text
+2026-01-31 13:20:20.225528 - HEAD_RIGHT: Moved right by 31.9px
+```
+
+## MQTT Servo Addon
+
+The MQTT addon keeps the original recognizer separate and publishes servo commands for the ESP8266.
+
+Run it from the repo root:
+
+```bash
+python addons/mqtt_servo_tracking/recognize_mqtt.py
+```
+
+Default MQTT settings:
+
+- Broker: `157.173.101.159`
+- MQTT port: `1883`
+- Browser WebSocket URL: `ws://157.173.101.159:9001`
+- Movement topic: `vision/teamalpha/movement`
+- Status topic: `vision/teamalpha/status`
+
+Movement payloads on `vision/teamalpha/movement`:
+
+- `LEFT`
+- `RIGHT`
+- `CENTER`
+- `SEARCH`
+- `IDLE`
+
+Dashboard JSON is published on `vision/teamalpha/status`, including movement, lock state, target name, face count, horizontal error, FPS, threshold, and provider.
+
+Useful addon flags:
+
+```bash
+python addons/mqtt_servo_tracking/recognize_mqtt.py --mqtt-broker 157.173.101.159 --mqtt-topic vision/teamalpha/movement --mqtt-status-topic vision/teamalpha/status --deadzone-px 80 --center-exit-hysteresis-px 30 --search-delay-sec 0.8 --command-confirm-frames 2 --mqtt-min-interval 0.15 --mqtt-status-min-interval 0.25
+```
+
+## Dashboard
+
+Open:
+
+```text
+dashboard/index.html
+```
+
+The dashboard is a static HTML file. It uses MQTT over WebSockets and defaults to:
+
+```text
+ws://157.173.101.159:9001
+```
+
+It listens to:
+
+- `vision/teamalpha/movement`
+- `vision/teamalpha/status`
+
+The page includes editable connection fields, so you can change the WebSocket URL or topics without editing the file.
+
+The broker must expose MQTT over WebSockets on port `9001` for the dashboard to connect. Plain MQTT port `1883` is for Python and ESP8266 clients, not browsers.
+
+## ESP8266 Servo Setup
+
+1. Open `addons/mqtt_servo_tracking/esp8266/face_tracker_servo/face_tracker_servo.ino`.
+2. Set `WIFI_SSID` and `WIFI_PASSWORD`.
+3. Confirm:
+
+   ```cpp
+   MQTT_SERVER = "157.173.101.159";
+   MQTT_TOPIC = "vision/teamalpha/movement";
+   ```
+
+4. Adjust servo settings for your hardware:
+
+   - `SERVO_PIN`
+   - `SERVO_MIN_ANGLE`
+   - `SERVO_MAX_ANGLE`
+   - `REVERSE_SERVO`
+
+5. Install Arduino libraries:
+
+   - `PubSubClient`
+   - `Servo` from the ESP8266 core
+
+6. Upload with `arduino-cli`:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File addons/mqtt_servo_tracking/esp8266/upload.ps1 -Port COM5
+   ```
+
+If your board is not NodeMCU v2, pass a different FQBN:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File addons/mqtt_servo_tracking/esp8266/upload.ps1 -Port COM5 -Fqbn esp8266:esp8266:d1_mini
+```
+
+## Tuning Tips
+
+- Increase `--deadzone-px` if the servo moves while the face is already centered.
+- Increase `--search-delay-sec` if brief recognition drops trigger `SEARCH` too quickly.
+- Increase `--command-confirm-frames` if `LEFT` and `RIGHT` flicker.
+- Lower the recognition threshold if false positives happen.
+- Raise the recognition threshold if known faces are not accepted.
+
+## Troubleshooting
+
+- Empty database: run `python -m src.enroll` or `python -m src.rebuild_db`.
+- Camera not available: check the camera index in the recognizer code if your webcam is not device `1`.
+- Dashboard offline: confirm the broker exposes MQTT over WebSockets at `ws://157.173.101.159:9001`.
+- ESP8266 not moving: confirm Wi-Fi credentials, broker address, topic, and Serial Monitor output.
+- CPU-only machine: keep `onnxruntime`; do not install `onnxruntime-gpu`.
+
+## ESP32 Servo Setup
+
+1. Open `addons/mqtt_servo_tracking/esp32/face_tracker_servo_esp32/face_tracker_servo_esp32.ino`.
+2. Set `WIFI_SSID` and `WIFI_PASSWORD`.
+3. Confirm:
+
+   ```cpp
+   MQTT_SERVER = "157.173.101.159";
+   MQTT_TOPIC = "vision/teamalpha/movement";
+   ```
+
+4. Install Arduino libraries:
+
+   - `PubSubClient`
+   - `ESP32Servo`
+
+5. Pick a valid ESP32 PWM-capable servo pin for your board. The default in the sketch is `GPIO18`.
+6. Upload with `arduino-cli`:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File addons/mqtt_servo_tracking/esp32/upload.ps1 -Port COM5
+   ```
+
+If your board is not the generic ESP32 target, pass the matching FQBN. Example for an ESP32-S3 Dev Module:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File addons/mqtt_servo_tracking/esp32/upload.ps1 -Port COM5 -Fqbn esp32:esp32:esp32s3
+```
