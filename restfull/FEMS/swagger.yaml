@@ -1,0 +1,1542 @@
+openapi: 3.0.3
+info:
+  title: TZW LTD Fire Extinguisher Management API
+  version: 1.0.0
+  description: |
+    Consolidated API documentation for the FEMS backend services behind the API gateway.
+
+    Covered services:
+    - Authentication and user administration
+    - Facility and customer management
+    - Fire extinguisher registration and tracking
+    - Inspection scheduling and recording
+    - Maintenance logging
+    - Notifications and escalations
+    - Reporting and audit access
+servers:
+  - url: http://localhost:5000/api
+    description: Local API gateway
+tags:
+  - name: Gateway
+    description: API gateway status and discovery endpoints
+  - name: Auth
+    description: Authentication, profile management, and user administration
+  - name: Customers
+    description: Facility and customer records
+  - name: Extinguishers
+    description: Fire extinguisher registration, inventory, and lifecycle updates
+  - name: Inspections
+    description: Inspection scheduling, assignment, and inspection history
+  - name: Maintenance
+    description: Maintenance planning, service logging, and maintenance status
+  - name: Notifications
+    description: In-app notifications, read-state updates, and manual notification jobs
+  - name: Escalations
+    description: Escalation review and resolution
+  - name: Reports
+    description: Operational, compliance, inventory, and audit reporting
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit10Param:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    Limit20Param:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SearchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+        default: ''
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Validation failed
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: string
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 35
+        totalPages:
+          type: integer
+          example: 4
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, inspector, user]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    AuthenticatedUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, inspector, user]
+        firstName:
+          type: string
+        lastName:
+          type: string
+    AuthPayload:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          example: Alice
+        lastName:
+          type: string
+          example: Ndayizeye
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        password:
+          type: string
+          example: Strong@123
+        role:
+          type: string
+          enum: [admin, inspector, user]
+          default: user
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          example: '123456'
+        newPassword:
+          type: string
+          example: Stronger@123
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+    UpdateUserRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [admin, inspector, user]
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerCode:
+          type: string
+        fullName:
+          type: string
+        nationalId:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        email:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        organizationName:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        extinguisherCount:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    CustomerCreateRequest:
+      type: object
+      required: [fullName, phone]
+      properties:
+        fullName:
+          type: string
+        nationalId:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          example: '+250788000000'
+        email:
+          type: string
+          format: email
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        organizationName:
+          type: string
+          nullable: true
+    CustomerUpdateRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        nationalId:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        organizationName:
+          type: string
+          nullable: true
+    Extinguisher:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        extinguisherCode:
+          type: string
+        serialNumber:
+          type: string
+        type:
+          type: string
+          enum: [Water, CO2, Foam, Dry Chemical]
+        size:
+          type: string
+          enum: ['2.5 lb', '5 lb', '9 lb', '12 lb']
+        capacityLiters:
+          type: number
+          nullable: true
+        manufactureDate:
+          type: string
+          format: date
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date
+          nullable: true
+        installationDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        lastInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        nextInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        location:
+          type: string
+        customerId:
+          type: string
+          format: uuid
+        customerName:
+          type: string
+        customerOrg:
+          type: string
+          nullable: true
+        customerEmail:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, expired, serviced, decommissioned, pending_inspection]
+        complianceStatus:
+          type: string
+          enum: [compliant, warning, critical, non_compliant]
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ExtinguisherCreateRequest:
+      type: object
+      required: [serialNumber, type, size, location, installationDate, expiryDate, customerId]
+      properties:
+        serialNumber:
+          type: string
+        type:
+          type: string
+          enum: [Water, CO2, Foam, Dry Chemical]
+        size:
+          type: string
+          enum: ['2.5 lb', '5 lb', '9 lb', '12 lb']
+        location:
+          type: string
+        installationDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, expired, serviced, decommissioned, pending_inspection]
+          default: active
+        customerId:
+          type: string
+          format: uuid
+        manufactureDate:
+          type: string
+          format: date
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date
+          nullable: true
+        capacityLiters:
+          type: number
+          nullable: true
+        lastInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        nextInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    ExtinguisherUpdateRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        type:
+          type: string
+          enum: [Water, CO2, Foam, Dry Chemical]
+        size:
+          type: string
+          enum: ['2.5 lb', '5 lb', '9 lb', '12 lb']
+        location:
+          type: string
+        installationDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, expired, serviced, decommissioned, pending_inspection]
+        manufactureDate:
+          type: string
+          format: date
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date
+          nullable: true
+        capacityLiters:
+          type: number
+          nullable: true
+        lastInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        nextInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+    NotificationStatus:
+      type: object
+      properties:
+        emailSent:
+          type: boolean
+        emailRecipient:
+          type: string
+          nullable: true
+        emailError:
+          type: string
+          nullable: true
+    Inspection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        extinguisherId:
+          type: string
+          format: uuid
+        extinguisherCode:
+          type: string
+        inspectorId:
+          type: string
+          format: uuid
+        inspectorName:
+          type: string
+        inspectionDate:
+          type: string
+          format: date
+        inspectionTime:
+          type: string
+          nullable: true
+          example: '10:30'
+        findings:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [Scheduled, Completed, Requires Service, Failed]
+        nextInspectionDate:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    InspectionCreateRequest:
+      type: object
+      required: [extinguisherId, inspectorId, inspectionDate, status]
+      properties:
+        extinguisherId:
+          type: string
+          format: uuid
+        inspectorId:
+          type: string
+          format: uuid
+        inspectionDate:
+          type: string
+          format: date
+        inspectionTime:
+          type: string
+          nullable: true
+          example: '10:30'
+        findings:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [Scheduled, Completed, Requires Service, Failed]
+        nextInspectionDate:
+          type: string
+          format: date
+          nullable: true
+    Maintenance:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        extinguisherId:
+          type: string
+          format: uuid
+        extinguisherCode:
+          type: string
+        serviceDate:
+          type: string
+          format: date
+        serviceCompany:
+          type: string
+        technicianName:
+          type: string
+        actionTaken:
+          type: string
+        issuesIdentified:
+          type: string
+        recommendations:
+          type: string
+          nullable: true
+        nextServiceDate:
+          type: string
+          format: date
+          nullable: true
+        cost:
+          type: number
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+    MaintenanceCreateRequest:
+      type: object
+      required:
+        [extinguisherId, serviceDate, serviceCompany, technicianName, actionTaken, issuesIdentified]
+      properties:
+        extinguisherId:
+          type: string
+          format: uuid
+        serviceDate:
+          type: string
+          format: date
+        serviceCompany:
+          type: string
+        technicianName:
+          type: string
+        actionTaken:
+          type: string
+        issuesIdentified:
+          type: string
+        recommendations:
+          type: string
+          nullable: true
+        nextServiceDate:
+          type: string
+          format: date
+          nullable: true
+        cost:
+          type: number
+          default: 0
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled]
+          default: completed
+    MaintenanceStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled]
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+          nullable: true
+        extinguisherId:
+          type: string
+          format: uuid
+          nullable: true
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        emailSent:
+          type: boolean
+        emailSentAt:
+          type: string
+          format: date-time
+          nullable: true
+        daysUntilExpiry:
+          type: integer
+          nullable: true
+        escalationStage:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    Escalation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        extinguisher_id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        stage:
+          type: integer
+        status:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        resolved_by:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        extinguisher_code:
+          type: string
+        serial_number:
+          type: string
+        location:
+          type: string
+        customer_name:
+          type: string
+        organization_name:
+          type: string
+    ResolveEscalationRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          nullable: true
+    ReportMeta:
+      type: object
+      properties:
+        institution:
+          type: string
+        system:
+          type: string
+        title:
+          type: string
+        generatedBy:
+          type: string
+        generatedByEmail:
+          type: string
+        generatedByRole:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        generatedAtDisplay:
+          type: string
+        totalRecords:
+          type: integer
+        filters:
+          type: object
+          additionalProperties: true
+    ReportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        report:
+          $ref: '#/components/schemas/ReportMeta'
+        columns:
+          type: array
+          items:
+            type: string
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+security:
+  - bearerAuth: []
+paths:
+  /:
+    get:
+      tags: [Gateway]
+      security: []
+      summary: Gateway root information
+      responses:
+        '200':
+          description: API gateway details
+  /health:
+    get:
+      tags: [Gateway]
+      security: []
+      summary: Gateway health check
+      responses:
+        '200':
+          description: Gateway health and configured service URLs
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: '#/components/schemas/AuthPayload'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: Email already registered
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login and receive a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: '#/components/schemas/AuthPayload'
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Account deactivated
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout the current user
+      responses:
+        '200':
+          description: Logout recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+  /auth/validate:
+    get:
+      tags: [Auth]
+      summary: Validate the current JWT
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/AuthenticatedUser'
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the current user profile
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    $ref: '#/components/schemas/User'
+  /auth/profile:
+    patch:
+      tags: [Auth]
+      summary: Update the current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated and fresh token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: '#/components/schemas/AuthPayload'
+        '409':
+          description: Email already registered
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Request a password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: OTP request accepted
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset completed
+        '400':
+          description: Invalid or expired OTP
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change the current password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed
+        '400':
+          description: Password change rejected
+  /auth/inspectors:
+    get:
+      tags: [Auth]
+      summary: List active inspectors available for assignment
+      responses:
+        '200':
+          description: Active inspector list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/User'
+                        - type: object
+                          properties:
+                            fullName:
+                              type: string
+  /auth/users:
+    get:
+      tags: [Auth]
+      summary: List users
+      description: Admin only
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          description: User list
+    patch:
+      tags: [Auth]
+      deprecated: true
+      summary: Not implemented at collection level
+      responses:
+        '405':
+          description: Method not allowed
+  /auth/users/{id}/toggle:
+    patch:
+      tags: [Auth]
+      summary: Activate or deactivate a user
+      description: Admin only
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: User activation state toggled
+  /auth/users/{id}/role:
+    patch:
+      tags: [Auth]
+      summary: Update a user's role
+      description: Admin only
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRoleRequest'
+      responses:
+        '200':
+          description: User role updated
+  /customers:
+    post:
+      tags: [Customers]
+      summary: Create a customer or facility record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+      responses:
+        '201':
+          description: Customer created
+    get:
+      tags: [Customers]
+      summary: List customers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          description: Customer list
+  /customers/{id}:
+    get:
+      tags: [Customers]
+      summary: Get a customer by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Customer details
+    put:
+      tags: [Customers]
+      summary: Update a customer or facility
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+      responses:
+        '200':
+          description: Customer updated
+    delete:
+      tags: [Customers]
+      summary: Delete a customer or facility
+      description: Admin only. Fails if extinguishers are still linked.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Customer deleted
+        '409':
+          description: Customer still has extinguisher dependencies
+  /extinguishers:
+    post:
+      tags: [Extinguishers]
+      summary: Register a fire extinguisher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtinguisherCreateRequest'
+      responses:
+        '201':
+          description: Extinguisher registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: '#/components/schemas/Extinguisher'
+                  notification:
+                    $ref: '#/components/schemas/NotificationStatus'
+    get:
+      tags: [Extinguishers]
+      summary: List extinguishers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, expired, serviced, decommissioned, pending_inspection]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [Water, CO2, Foam, Dry Chemical]
+        - name: customerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: compliance
+          in: query
+          schema:
+            type: string
+            enum: [compliant, warning, critical, non_compliant]
+      responses:
+        '200':
+          description: Extinguisher list
+  /extinguishers/stats:
+    get:
+      tags: [Extinguishers]
+      summary: Inventory statistics
+      responses:
+        '200':
+          description: Aggregate inventory statistics
+  /extinguishers/{id}:
+    get:
+      tags: [Extinguishers]
+      summary: Get extinguisher details
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Extinguisher details
+    put:
+      tags: [Extinguishers]
+      summary: Update extinguisher details
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtinguisherUpdateRequest'
+      responses:
+        '200':
+          description: Extinguisher updated
+    delete:
+      tags: [Extinguishers]
+      summary: Delete an extinguisher
+      description: Admin only
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Extinguisher removed
+  /inspections:
+    post:
+      tags: [Inspections]
+      summary: Schedule or record an inspection
+      description: |
+        Users can schedule only.
+        Admins and inspectors can also record completed or failed outcomes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InspectionCreateRequest'
+      responses:
+        '201':
+          description: Inspection scheduled or recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: '#/components/schemas/Inspection'
+        '403':
+          description: User role cannot submit the requested outcome
+    get:
+      tags: [Inspections]
+      summary: List inspections
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - name: extinguisherId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Scheduled, Completed, Requires Service, Failed]
+      responses:
+        '200':
+          description: Inspection list
+  /inspections/{id}:
+    get:
+      tags: [Inspections]
+      summary: Get an inspection by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Inspection details
+    put:
+      tags: [Inspections]
+      summary: Update an inspection by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InspectionCreateRequest'
+      responses:
+        '200':
+          description: Inspection updated
+  /maintenance:
+    post:
+      tags: [Maintenance]
+      summary: Create a maintenance record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCreateRequest'
+      responses:
+        '201':
+          description: Maintenance record created
+    get:
+      tags: [Maintenance]
+      summary: List maintenance records
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - name: extinguisherId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Maintenance list
+  /maintenance/{id}:
+    get:
+      tags: [Maintenance]
+      summary: Get a maintenance record by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Maintenance details
+    put:
+      tags: [Maintenance]
+      summary: Update a maintenance record by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCreateRequest'
+      responses:
+        '200':
+          description: Maintenance record updated
+  /maintenance/{id}/status:
+    patch:
+      tags: [Maintenance]
+      summary: Update maintenance status
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceStatusRequest'
+      responses:
+        '200':
+          description: Maintenance status updated
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications for the current user
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit20Param'
+        - name: unread
+          in: query
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification list
+  /notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark one notification as read
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Notification marked as read
+  /notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Mark all notifications as read for the current user
+      responses:
+        '200':
+          description: All notifications marked as read
+  /notifications/escalations:
+    get:
+      tags: [Escalations]
+      summary: List escalation records
+      description: Admin and inspector roles only
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit10Param'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Escalation list
+  /notifications/escalations/{id}/resolve:
+    patch:
+      tags: [Escalations]
+      summary: Resolve an escalation
+      description: Admin and inspector roles only
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveEscalationRequest'
+      responses:
+        '200':
+          description: Escalation resolved
+  /notifications/trigger-check:
+    post:
+      tags: [Notifications]
+      summary: Trigger expiry and escalation checks manually
+      description: Admin only. Processing runs asynchronously after response.
+      responses:
+        '200':
+          description: Background trigger accepted
+  /reports/expired:
+    get:
+      tags: [Reports]
+      summary: Expired extinguishers report
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+  /reports/expiring-soon:
+    get:
+      tags: [Reports]
+      summary: Upcoming expirations report
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 90
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+  /reports/customers:
+    get:
+      tags: [Reports]
+      summary: Facility report
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+  /reports/inspections:
+    get:
+      tags: [Reports]
+      summary: Inspection report
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+  /reports/inspections/status-summary:
+    get:
+      tags: [Reports]
+      summary: Pending, completed and overdue inspection totals
+      responses:
+        '200':
+          description: Inspection status summary
+  /reports/maintenance:
+    get:
+      tags: [Reports]
+      summary: Maintenance report
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+  /reports/maintenance/frequency:
+    get:
+      tags: [Reports]
+      summary: Maintenance frequency report
+      responses:
+        '200':
+          description: Maintenance count per extinguisher
+  /reports/compliance:
+    get:
+      tags: [Reports]
+      summary: Compliance report
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, pdf]
+      responses:
+        '200':
+          description: Report payload or downloadable export
+  /reports/inventory/summary:
+    get:
+      tags: [Reports]
+      summary: Daily, monthly and yearly inventory summary
+      responses:
+        '200':
+          description: Inventory summary counters
+  /reports/audit:
+    get:
+      tags: [Reports]
+      summary: Audit log report
+      description: Admin only
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/Limit20Param'
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit trail list
+  /reports/summary:
+    get:
+      tags: [Reports]
+      summary: Dashboard summary
+      responses:
+        '200':
+          description: High-level cross-service dashboard metrics
