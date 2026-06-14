@@ -1,12 +1,4 @@
-# Local agent/model instruction files
-AGENTS.md
-.agents/
-.agent/
-.claude/
-
 # Dependency and generated folders
 node_modules/
 .expo/
 dist/
-android/
-ios/
