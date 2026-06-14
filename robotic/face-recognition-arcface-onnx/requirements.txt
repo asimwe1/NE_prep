@@ -1,0 +1,14 @@
+# Core Dependencies
+opencv-python>=4.8.0
+numpy>=1.24.0
+onnxruntime>=1.16.0
+mtcnn>=0.1.1
+
+# Visualization (for threshold evaluation)
+matplotlib>=3.5.0
+
+# Face Detection (TensorFlow-free!)
+mediapipe>=0.10.0
+
+# Optional: For better performance on GPU
+# onnxruntime-gpu>=1.16.0  # Uncomment if you have CUDA GPU
