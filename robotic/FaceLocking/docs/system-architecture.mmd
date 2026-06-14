@@ -1,0 +1,85 @@
+flowchart TB
+    subgraph ClientSide[Client And Edge Devices]
+        user[User]
+        webcam[Camera Device]
+        browser[Dashboard Browser]
+        esp[ESP8266 / ESP32 Servo Node]
+    end
+
+    subgraph HostMachine[FaceLocking Host Machine]
+        subgraph AppLayer[Application Layer]
+            enroll[Enrollment CLI\nsrc/enroll.py]
+            recognize[Recognition CLI\nsrc/recognize.py]
+            mqtt_app[MQTT Tracking App\nrecognize_mqtt.py]
+            rebuild[Rebuild Utility\nsrc/rebuild_db.py]
+        end
+
+        subgraph VisionLayer[Vision Pipeline]
+            haar[Haar Cascade Detector]
+            mediapipe[MediaPipe Face Landmarker]
+            align[5-Point Face Alignment]
+            arcface[ArcFace ONNX Embedder]
+            match[Cosine Matcher]
+        end
+
+        subgraph StorageLayer[Local Storage]
+            models[(models/\nONNX + task files)]
+            enroll_data[(data/enroll/)]
+            face_db[(data/db/face_db.npz)]
+            face_meta[(data/db/face_db.json)]
+            action_logs[(logs/)]
+        end
+
+        subgraph RuntimeLayer[Runtime Dependencies]
+            python[Python Runtime]
+            cv2[OpenCV]
+            ort[ONNX Runtime]
+            mqtt_lib[Paho MQTT]
+        end
+    end
+
+    subgraph NetworkServices[Network Services]
+        mqtt_broker[MQTT Broker\nTCP 1883 / WS 9001]
+    end
+
+    user --> enroll
+    user --> recognize
+    user --> mqtt_app
+    user --> rebuild
+
+    webcam --> enroll
+    webcam --> recognize
+    webcam --> mqtt_app
+
+    enroll --> haar
+    recognize --> haar
+    mqtt_app --> haar
+    haar --> mediapipe --> align --> arcface --> match
+
+    models --> mediapipe
+    models --> arcface
+    enroll --> enroll_data
+    enroll --> face_db
+    enroll --> face_meta
+    rebuild --> enroll_data
+    rebuild --> face_db
+    rebuild --> face_meta
+    recognize --> action_logs
+    mqtt_app --> action_logs
+
+    face_db --> match
+    face_meta --> recognize
+    face_db --> recognize
+    face_db --> mqtt_app
+
+    mqtt_app --> mqtt_broker
+    mqtt_broker --> browser
+    mqtt_broker --> esp
+
+    python --> enroll
+    python --> recognize
+    python --> mqtt_app
+    python --> rebuild
+    cv2 --> haar
+    ort --> arcface
+    mqtt_lib --> mqtt_app

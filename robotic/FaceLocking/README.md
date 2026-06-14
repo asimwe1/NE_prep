@@ -9,11 +9,20 @@ The project is CPU-first. It works with the normal `onnxruntime` package, so peo
 - `src/enroll.py` - capture face samples and build the face database.
 - `src/recognize.py` - run local face recognition and face locking.
 - `src/rebuild_db.py` - rebuild `data/db/face_db.npz` from existing enrollment crops.
+- `docs/dataflow-diagram.mmd` - Mermaid data-flow diagram for enrollment, recognition, and MQTT tracking.
+- `docs/system-architecture.mmd` - Mermaid system architecture diagram for the host, broker, dashboard, and servo node.
 - `addons/mqtt_servo_tracking/recognize_mqtt.py` - face locking plus MQTT movement/status publishing.
 - `addons/mqtt_servo_tracking/esp8266/face_tracker_servo/face_tracker_servo.ino` - ESP8266 servo firmware.
 - `addons/mqtt_servo_tracking/esp32/face_tracker_servo_esp32/face_tracker_servo_esp32.ino` - ESP32 servo firmware.
 - `dashboard/index.html` - static MQTT dashboard for live movement and lock status.
 - `logs/` - action history files created during face-lock sessions.
+
+## Mermaid Diagrams
+
+Use these Mermaid source files to render project diagrams in Markdown viewers, Mermaid Live, or documentation tooling:
+
+- `docs/dataflow-diagram.mmd`
+- `docs/system-architecture.mmd`
 
 ## Requirements
 

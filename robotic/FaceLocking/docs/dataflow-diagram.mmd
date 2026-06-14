@@ -1,0 +1,55 @@
+flowchart LR
+    user[User]
+    camera[USB Camera]
+    enroll[Enrollment Script\nsrc/enroll.py]
+    rebuild[DB Rebuild Script\nsrc/rebuild_db.py]
+    recognize[Recognition Script\nsrc/recognize.py]
+    mqtt_recognize[MQTT Recognition Addon\naddons/mqtt_servo_tracking/recognize_mqtt.py]
+    detector[Face Detection + 5-Point Landmarks\nHaar Cascade + MediaPipe]
+    aligner[Face Alignment\n112x112 normalized crop]
+    embedder[ArcFace Embedder\nONNX Runtime]
+    matcher[Face DB Matcher\nCosine Similarity]
+    crops[(Enrollment Crops\n data/enroll/*)]
+    facedb[(Face Database\n data/db/face_db.npz)]
+    metadata[(DB Metadata\n data/db/face_db.json)]
+    logs[(Action Logs\n logs/*.txt)]
+    broker[MQTT Broker]
+    dashboard[Web Dashboard]
+    servo[ESP8266 / ESP32 Servo Controller]
+
+    user -->|start capture| enroll
+    camera --> enroll
+    enroll --> detector --> aligner --> embedder
+    embedder -->|sample embeddings| enroll
+    enroll -->|save aligned face crops| crops
+    enroll -->|save mean embedding| facedb
+    enroll -->|save DB metadata| metadata
+
+    crops --> rebuild
+    rebuild --> embedder
+    rebuild -->|recomputed embeddings| facedb
+    rebuild --> metadata
+
+    user -->|run recognition| recognize
+    camera --> recognize
+    facedb --> recognize
+    recognize --> detector
+    detector --> aligner
+    aligner --> embedder
+    embedder --> matcher
+    facedb --> matcher
+    matcher -->|identity + distance| recognize
+    recognize -->|lock/unlock events| logs
+
+    user -->|run servo tracking| mqtt_recognize
+    camera --> mqtt_recognize
+    facedb --> mqtt_recognize
+    mqtt_recognize --> detector
+    mqtt_recognize --> aligner
+    mqtt_recognize --> embedder
+    mqtt_recognize --> matcher
+    matcher --> mqtt_recognize
+    mqtt_recognize -->|movement commands| broker
+    mqtt_recognize -->|status JSON| broker
+    broker --> dashboard
+    broker --> servo
