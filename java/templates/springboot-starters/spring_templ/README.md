@@ -1,140 +1,15 @@
-# Spring Boot Security Template
+# Spring Boot Starter Template
 
-A clean Spring Boot starter for JWT auth, email verification, refresh tokens, role-based access, and PostgreSQL-ready deployment.
+This folder is a reusable Spring Boot starter with local environment-based configuration.
 
-## What it includes
+## Local Setup
 
-- Spring Boot 3.2.5
-- Spring Security 6
-- JWT + refresh token rotation
-- Email verification and password reset
-- PostgreSQL for local dev and prod
-- H2 for tests
-- Swagger/OpenAPI via SpringDoc
-- Docker Compose support for app + PostgreSQL
-
-## Quick start
-
-```bash
-cd springboot-template
-```
-
-### Local dev
-
-Create a local `.env` file first:
-
-```bash
-cp .env.example .env
-```
-
-Fill in real values in `.env`. That file is ignored by Git and is loaded by Spring Boot through `spring.config.import`.
-
-```bash
-./mvnw spring-boot:run
-```
-
-The app starts on `http://localhost:8080`.
-
-Open:
-
-- `http://localhost:8080/swagger-ui.html`
-Before running, make sure PostgreSQL is running locally and has a database named `templatedb`.
-
-Default local database settings:
-
-```dotenv
-DB_URL=jdbc:postgresql://localhost:5432/templatedb
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-```
-
-In local dev, email is sent through SMTP when `EMAIL_DELIVERY=smtp`. For Gmail, use a Gmail app password, not your normal Gmail password.
-
-Default admin:
-
-- `admin@example.com`
-- password comes from `ADMIN_DEFAULT_PASSWORD` in `.env`
-
-### Run production profile locally
-
-```bash
-export SPRING_PROFILES_ACTIVE=prod
-export DB_URL=jdbc:postgresql://localhost:5432/yourdb
-export DB_USERNAME=postgres
-export DB_PASSWORD=your_database_password
-./mvnw spring-boot:run
-```
-
-## Docker
-
-Use the provided Docker Compose definition to run the backend and Postgres together.
-
-```bash
-docker compose up --build
-```
-
-The app is available at `http://localhost:8080`.
-
-The Compose setup uses your local `.env` file and also sets:
-
-- `SPRING_PROFILES_ACTIVE=prod`
-- `DB_URL=jdbc:postgresql://db:5432/templatedb`
-
-So your JWT, email, and app settings from `.env` are applied.
-
-## Environment variables
-
-Example `.env` values:
-
-```dotenv
-DB_URL=jdbc:postgresql://localhost:5432/templatedb
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=replace_with_a_generated_secret
-JWT_EXPIRATION=86400000
-JWT_REFRESH_EXPIRATION=604800000
-EMAIL_DELIVERY=smtp
-MAIL_HEALTH_ENABLED=true
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your_gmail_address@gmail.com
-MAIL_PASSWORD=your_gmail_app_password
-MAIL_SMTP_AUTH=true
-MAIL_STARTTLS=true
-MAIL_STARTTLS_REQUIRED=true
-MAIL_FROM=your_gmail_address@gmail.com
-MAIL_FROM_NAME=YourApp
-APP_BASE_URL=http://localhost:8080
-ADMIN_DEFAULT_PASSWORD=replace_with_a_local_admin_password
-```
-
-`.env` is ignored by `.gitignore` and should remain local.
-
-For Gmail SMTP, use these `.env` values:
-
-```dotenv
-EMAIL_DELIVERY=smtp
-MAIL_HEALTH_ENABLED=true
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your_gmail_address@gmail.com
-MAIL_PASSWORD=your_gmail_app_password
-MAIL_SMTP_AUTH=true
-MAIL_STARTTLS=true
-MAIL_STARTTLS_REQUIRED=true
-MAIL_FROM=your_gmail_address@gmail.com
-```
-
-`MAIL_FROM` should match `MAIL_USERNAME` for Gmail. If you temporarily do not want real emails, set `EMAIL_DELIVERY=log` and `MAIL_HEALTH_ENABLED=false`; password-reset responses will include `actionUrl` directly.
-
-## API docs
-
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+1. Copy `.env.example` to `.env`.
+2. Replace the placeholder database, JWT, email, and admin values.
+3. Keep the real `.env` file out of source control.
 
 ## Notes
 
-- The default active profile is `dev`.
-- `application-prod.yml` is the PostgreSQL production profile.
-- Docker Compose uses a service hostname of `db` for Postgres.
-- Do not commit secret values.
+- `target/` is generated build output.
+- `.idea/` is local IDE state.
+- Keep this template generic so it can be reused for future practical work.
