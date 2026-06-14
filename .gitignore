@@ -1,0 +1,53 @@
+# Workspace-wide ignore rules
+
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+.next/
+.expo/
+coverage/
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Java / Kotlin
+.gradle/
+
+# IDEs and local editor state
+.idea/
+.vscode/
+!.vscode/launch.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local executables and compiled artifacts
+*.exe
+*.out
+*.class
+
+# Git internals from accidentally nested repos
+**/.git
