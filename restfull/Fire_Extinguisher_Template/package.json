@@ -1,0 +1,35 @@
+{
+  "name": "fire-ext-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "setup": "npm run setup:gateway && npm run setup:auth && npm run setup:customer && npm run setup:notification && npm run setup:escalation && npm run setup:email && npm run setup:frontend",
+    "setup:gateway": "cd api-gateway && npm install",
+    "setup:auth": "cd services/auth-service && npm install",
+    "setup:customer": "cd services/customer-service && npm install",
+    "setup:notification": "cd services/notification-service && npm install",
+    "setup:escalation": "cd services/escalation-service && npm install",
+    "setup:email": "cd services/email-service && npm install",
+    "setup:frontend": "cd frontend && npm install",
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:customer\" \"npm run dev:notification\" \"npm run dev:escalation\" \"npm run dev:email\" \"npm run dev:frontend\"",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:auth": "cd services/auth-service && npm run dev",
+    "dev:customer": "cd services/customer-service && npm run dev",
+    "dev:notification": "cd services/notification-service && npm run dev",
+    "dev:escalation": "cd services/escalation-service && npm run dev",
+    "dev:email": "cd services/email-service && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "db:setup": "node scripts/seed-database.js",
+    "db:truncate": "node scripts/truncate-database.js",
+    "db:reset": "node scripts/truncate-database.js --force && node scripts/seed-database.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0"
+  }
+}
